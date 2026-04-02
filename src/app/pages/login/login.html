@@ -1,0 +1,39 @@
+<div class="container mt-5 pt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+      
+      <div class="card product-card p-4 p-sm-5 text-white shadow">
+        
+        <div class="text-center mb-4">
+          <h4 class="fw-bold text-white mb-2">¡Bienvenid@ de vuelta a Repuestos SpA!</h4>
+        </div>
+
+        <form (ngSubmit)="onLogin()">
+          
+          <div class="form-floating mb-2">
+            <input type="email" class="form-control" id="emailInput" placeholder="usuario@ejemplo.cl" [(ngModel)]="email" name="email" required>
+            <label for="emailInput">Correo</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="password" class="form-control" id="passInput" placeholder="Ingresar contraseña" [(ngModel)]="password" name="password" required>
+            <label for="passInput">Contraseña</label>
+          </div>
+
+          <div class="text-center mb-4">
+            <a href="#" class="text-brand text-decoration-none small fw-semibold">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <button type="submit" class="btn btn-brand w-100 fw-bold py-2 mb-4">Entrar a mi cuenta</button>
+
+          <div class="text-center">
+            <span class="text-muted small">¿No tienes cuenta? </span>
+            <a routerLink="/registro" class="text-brand text-decoration-none fw-bold small">Regístrate aquí</a>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+<div class="container mt-5 pt-2 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      
+      <div class="card product-card p-4 p-sm-5 text-white shadow">
+        
+        <div class="text-center mb-4">
+          <h4 class="fw-bold text-white mb-2">Bienvenid@!</h4>
+          <p class="text-muted small">Únete a Repuestos SpA para comprar y cotizar</p>
+        </div>
+
+        <form (ngSubmit)="onRegister()">
+          
+          <div class="row">
+            <div class="col-md-6 form-floating mb-3">
+              <input type="text" class="form-control" id="nombreInput" placeholder="Ej: Juan" [(ngModel)]="nombre" name="nombre" required>
+              <label for="nombreInput" class="ms-2">Nombre *</label>
+            </div>
+            <div class="col-md-6 form-floating mb-3">
+              <input type="text" class="form-control" id="apellidosInput" placeholder="Ej: Pérez González" [(ngModel)]="apellidos" name="apellidos" required>
+              <label for="apellidosInput" class="ms-2">Apellidos *</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 form-floating mb-3">
+              <input type="text" class="form-control" id="rutInput" placeholder="Ej: 12.345.678-9" [(ngModel)]="rut" name="rut" required>
+              <label for="rutInput" class="ms-2">RUT *</label>
+            </div>
+            <div class="col-md-6 form-floating mb-3">
+              <input type="tel" class="form-control" id="telefonoInput" placeholder="Ej: +56912345678" [(ngModel)]="telefono" name="telefono">
+              <label for="telefonoInput" class="ms-2">Teléfono (Opcional)</label>
+            </div>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="email" class="form-control" id="correoInput" placeholder="usuario@ejemplo.cl" [(ngModel)]="correo" name="correo" required>
+            <label for="correoInput">Correo Electrónico *</label>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6 form-floating mb-3 mb-md-0">
+              <input type="password" class="form-control" id="passInput" placeholder="Contraseña" [(ngModel)]="password" name="password" required>
+              <label for="passInput" class="ms-2">Contraseña *</label>
+            </div>
+            <div class="col-md-6 form-floating">
+              <input type="password" class="form-control" id="confirmPassInput" placeholder="Repetir Contraseña" [(ngModel)]="confirmPassword" name="confirmPassword" required>
+              <label for="confirmPassInput" class="ms-2">Repetir Contraseña *</label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-brand w-100 fw-bold py-2 mb-3">Crear Cuenta</button>
+
+          <div class="text-center border-top border-secondary pt-3">
+            <span class="text-muted small">¿Ya tienes cuenta? </span>
+            <a routerLink="/login" class="text-brand text-decoration-none fw-bold small">Inicia sesión aquí</a>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>  
