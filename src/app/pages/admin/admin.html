@@ -1,0 +1,133 @@
+<div class="container py-4 text-white">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Panel de Administración de Inventario</h2>
+      <p class="text-secondary small mb-0">Gestión de repuestos, stock y compatibilidad automotriz.</p>
+    </div>
+    <span class="badge bg-success px-3 py-2">Rol: Administrador</span>
+  </div>
+  
+  <div class="row">
+    <!-- Formulario de Ingreso de Repuesto -->
+    <div class="col-lg-4 mb-4">
+      <div class="card bg-dark text-white border-secondary shadow-sm">
+        <div class="card-header border-secondary fw-bold bg-dark text-white">
+          Ingresar Nuevo Repuesto
+        </div>
+        <div class="card-body">
+          <form [formGroup]="repuestoForm" (ngSubmit)="guardarRepuesto()">
+            
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Nombre del Repuesto *</label>
+              <input type="text" class="form-control bg-secondary text-white border-0" formControlName="nombre" placeholder="Ej: Filtro de Aceite Hilux 2.8">
+            </div>
+
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold">Código / SKU *</label>
+                <input type="text" class="form-control bg-secondary text-white border-0" formControlName="sku" placeholder="Ej: ALT-8921">
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold">Categoría *</label>
+                <select class="form-select bg-secondary text-white border-0" formControlName="categoria">
+                  <option value="" disabled selected>Seleccionar...</option>
+                  <option *ngFor="let cat of categorias" [value]="cat.id">{{ cat.nombre }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold">Precio ($) *</label>
+                <input type="number" class="form-control bg-secondary text-white border-0" formControlName="precio" placeholder="15990">
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-semibold">Stock Inicial *</label>
+                <input type="number" class="form-control bg-secondary text-white border-0" formControlName="stock" placeholder="10">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Modelos Compatibles</label>
+              <input type="text" class="form-control bg-secondary text-white border-0" formControlName="compatibilidad" placeholder="Ej: Toyota Hilux 2018-2023 (Diesel)">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Imagen del Producto</label>
+              <input type="file" class="form-control bg-secondary text-white border-0" (change)="onFileSelected($event)" accept="image/*">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Descripción Técnica</label>
+              <textarea class="form-control bg-secondary text-white border-0" formControlName="descripcion" rows="3" placeholder="Detalles de fabricación, marca original, especificaciones..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn w-100 fw-bold border-0 text-white" style="background-color: #5a8d6e;" [disabled]="repuestoForm.invalid">
+              Guardar Repuesto
+            </button>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Inventario de Repuestos -->
+    <div class="col-lg-8">
+      <div class="card bg-dark text-white border-secondary shadow-sm">
+        <div class="card-header border-secondary fw-bold bg-dark text-white d-flex justify-content-between align-items-center">
+          <span>Catálogo de Repuestos Registrados</span>
+          <span class="badge bg-secondary">{{ repuestos.length }} ítems</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0 align-middle">
+              <thead>
+                <tr class="border-secondary text-secondary small">
+                  <th class="px-3">Imagen</th>
+                  <th>SKU / Nombre</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th class="text-center px-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let rep of repuestos" class="border-secondary">
+                  <td class="px-3" style="width: 70px;">
+                    <img [src]="rep.imagen || 'assets/placeholder-auto.png'" class="rounded border border-secondary" style="width: 48px; height: 48px; object-fit: cover;">
+                  </td>
+                  <td>
+                    <div class="fw-bold">{{ rep.nombre }}</div>
+                    <div class="text-secondary small">SKU: {{ rep.sku }}</div>
+                    <div *ngIf="rep.compatibilidad" class="text-success small" style="font-size: 0.75rem;">⚡ Compatible: {{ rep.compatibilidad }}</div>
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary">{{ rep.categoria_nombre || rep.categoria }}</span>
+                  </td>
+                  <td class="fw-bold text-success">${{ rep.precio | number }}</td>
+                  <td>
+                    <span [class.text-danger]="rep.stock === 0" [class.text-warning]="rep.stock < 5" [class.text-white]="rep.stock >= 5">
+                      {{ rep.stock }} u.
+                    </span>
+                  </td>
+                  <td class="text-center px-3">
+                    <button class="btn btn-sm btn-outline-danger border-0" (click)="borrarRepuesto(rep.id)" title="Eliminar Repuesto">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+                        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="repuestos.length === 0">
+                  <td colspan="6" class="text-center text-secondary py-5">
+                    No hay repuestos registrados en el inventario. Ingresa uno utilizando el formulario lateral.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
