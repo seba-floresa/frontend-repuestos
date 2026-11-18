@@ -16,21 +16,31 @@
       <!-- 2. Íconos Móvil (Perfil, Carrito) -->
       <div class="col-4 d-flex d-lg-none justify-content-end align-items-center p-0">
         <div class="dropdown me-3">
-          <a class="text-white d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="text-white d-flex align-items-center text-decoration-none dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/></svg>
           </a>
           <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end mt-2 position-absolute">
-            <li><a class="dropdown-item" routerLink="/login">Iniciar Sesión</a></li>
-            <li><a class="dropdown-item" routerLink="/registro">Registrarse</a></li>
+            <ng-container *ngIf="usuario; else noLogueadoMovil">
+              <li><a class="dropdown-item small" routerLink="/perfil">Editar perfil</a></li>
+              <li><a class="dropdown-item small" routerLink="/mis-pedidos">Mis pedidos</a></li>
+              <li *ngIf="usuario.is_staff">
+                <a class="dropdown-item small text-warning" routerLink="/admin">Panel Admin</a>
+              </li>
+              <li><hr class="dropdown-divider border-secondary"></li>
+              <li><a class="dropdown-item small text-danger" href="javascript:void(0)" (click)="logout()">Cerrar sesión</a></li>
+            </ng-container>
+            <ng-template #noLogueadoMovil>
+              <li><a class="dropdown-item" routerLink="/login">Iniciar Sesión</a></li>
+              <li><a class="dropdown-item" routerLink="/registro">Registrarse</a></li>
+            </ng-template>
           </ul>
         </div>
-        <a class="text-white" href="#" title="Carrito de Compras">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-cart3" viewBox="0 0 16 16"><path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479 9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
-        </a>
+        <!-- Carrito móvil -->
+        ...
       </div>
 
       <!-- 3. Buscador -->
-      <div class="col-12 col-lg-5 mt-3 mt-lg-0 p-0 px-lg-3">
+      <div class="col-12 col-lg-4 mt-3 mt-lg-0 p-0 px-lg-3">
         <form class="search-container mx-auto w-100" style="max-width: 600px;">
           <input class="form-control search-input" type="search" placeholder="¿Qué buscas?">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search search-icon" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
@@ -38,14 +48,14 @@
       </div>
 
       <!-- 4. Vehículo e Íconos Escritorio -->
-      <div class="col-12 col-lg-4 mt-3 mt-lg-0 d-flex flex-column flex-lg-row align-items-center justify-content-center justify-content-lg-end p-0">
+      <div class="col-12 col-lg-5 mt-3 mt-lg-0 d-flex flex-column flex-lg-row align-items-center justify-content-center justify-content-lg-end p-0">
         
         <!-- Vehículo -->
-        <div class="mb-3 mb-lg-0 me-lg-4 d-flex justify-content-center w-100" style="max-width: 300px;">
+        <div class="mb-3 mb-lg-0 me-lg-3 d-flex justify-content-center" [class.w-100]="vehiculoEncontrado" style="max-width: 260px;">
           
           <!-- Sin Vehículo -->
-          <a *ngIf="!vehiculoEncontrado" class="nav-link text-white fw-semibold d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#modalBuscadorVehiculo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-car-front-fill me-2" viewBox="0 0 16 16" style="color: #5a8d6e;"><path d="M2.52 3.515A2.5 2.5 0 0 1 4.82 2h6.362c1 0 1.904.596 2.298 1.515l.792 1.848c.075.175.21.319.38.404.5.25.855.715.965 1.262l.335 1.679q.05.242.049.49v.413c0 .814-.39 1.543-1 1.997V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5.5v-1.338c-1.292.048-2.745.088-4 .088s-2.708-.04-4-.088V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5.5v-1.892c-.61-.454-1-1.183-1-1.997v-.413a2.5 2.5 0 0 1 .049-.49l.335-1.68c.11-.546.465-1.012.964-1.261a.8.8 0 0 0 .381-.404l.792-1.848ZM3 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2m10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2M6 8a1 1 0 0 0 0 2h4a1 1 0 1 0 0-2zM2.906 5.189a.51.51 0 0 0 .497.731c.91-.073 3.35-.17 4.597-.17s3.688.097 4.597.17a.51.51 0 0 0 .497-.731l-.956-1.913A.5.5 0 0 0 11.691 3H4.309a.5.5 0 0 0-.447.276L2.906 5.19Z"/></svg>
+          <a *ngIf="!vehiculoEncontrado" class="nav-link text-white fw-semibold d-flex align-items-center text-nowrap" href="#" data-bs-toggle="modal" data-bs-target="#modalBuscadorVehiculo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-car-front-fill me-2 flex-shrink-0" viewBox="0 0 16 16" style="color: #5a8d6e;"><path d="M2.52 3.515A2.5 2.5 0 0 1 4.82 2h6.362c1 0 1.904.596 2.298 1.515l.792 1.848c.075.175.21.319.38.404.5.25.855.715.965 1.262l.335 1.679q.05.242.049.49v.413c0 .814-.39 1.543-1 1.997V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5.5v-1.338c-1.292.048-2.745.088-4 .088s-2.708-.04-4-.088V13.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5.5v-1.892c-.61-.454-1-1.183-1-1.997v-.413a2.5 2.5 0 0 1 .049-.49l.335-1.68c.11-.546.465-1.012.964-1.261a.8.8 0 0 0 .381-.404l.792-1.848ZM3 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2m10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2M6 8a1 1 0 0 0 0 2h4a1 1 0 1 0 0-2zM2.906 5.189a.51.51 0 0 0 .497.731c.91-.073 3.35-.17 4.597-.17s3.688.097 4.597.17a.51.51 0 0 0 .497-.731l-.956-1.913A.5.5 0 0 0 11.691 3H4.309a.5.5 0 0 0-.447.276L2.906 5.19Z"/></svg>
             <span class="fw-bold text-decoration-underline" style="color: #5a8d6e;">Agregar vehículo</span>
           </a>
 
@@ -66,18 +76,33 @@
         </div>
 
         <!-- Íconos Escritorio (Perfil, Carrito) -->
-        <div class="d-none d-lg-flex align-items-center">
+        <div class="d-none d-lg-flex align-items-center flex-shrink-0">
           <div class="dropdown me-3">
             <a class="nav-link dropdown-toggle text-white fw-semibold d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person me-1" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/></svg>
-              Perfil
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person me-1 flex-shrink-0" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/></svg>
+              <span class="d-inline-block text-truncate" style="max-width: 130px;">
+                {{ usuario ? 'Hola, ' + (usuario.nombre || usuario.username.split('@')[0]) : 'Perfil' }}
+              </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end mt-2">
-              <li><a class="dropdown-item" routerLink="/login">Iniciar Sesión</a></li>
-              <li><a class="dropdown-item" routerLink="/registro">Registrarse</a></li>
+              <!-- Si hay usuario logueado -->
+              <ng-container *ngIf="usuario; else noLogueadoEscritorio">
+                <li><a class="dropdown-item" routerLink="/perfil">Editar perfil</a></li>
+                <li><a class="dropdown-item" routerLink="/mis-pedidos">Mis pedidos</a></li>
+                <li *ngIf="usuario.is_staff">
+                  <a class="dropdown-item text-warning" routerLink="/admin">Panel de Administración</a>
+                </li>
+                <li><hr class="dropdown-divider border-secondary"></li>
+                <li><a class="dropdown-item text-danger" href="javascript:void(0)" (click)="logout()">Cerrar sesión</a></li>
+              </ng-container>
+              <!-- Si NO hay usuario -->
+              <ng-template #noLogueadoEscritorio>
+                <li><a class="dropdown-item" routerLink="/login">Iniciar Sesión</a></li>
+                <li><a class="dropdown-item" routerLink="/registro">Registrarse</a></li>
+              </ng-template>
             </ul>
           </div>
-          <a class="nav-link text-white" href="#" title="Carrito de Compras">
+          <a class="nav-link text-white flex-shrink-0" href="#" title="Carrito de Compras">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-cart3" viewBox="0 0 16 16"><path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479 9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
           </a>
         </div>

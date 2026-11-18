@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router} from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 // 1. Validador de RUT (Módulo 11)
 export const rutValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -53,8 +54,14 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 })
 export class Register implements OnInit {
   registerForm!: FormGroup;
+  isLoading = false;
+  errorMessage = '';
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
@@ -99,18 +106,33 @@ export class Register implements OnInit {
       return;
     }
 
+    this.isLoading = true;
+    this.errorMessage = '';
+
     const formValues = this.registerForm.value;
     const payloadDjango = {
       rut: formValues.rut,
-      nombre_completo: `${formValues.nombre} ${formValues.apellidos}`.trim(),
+      first_name: formValues.nombre.trim(),
+      last_name: formValues.apellidos.trim(),
+      nombre_completo: `${formValues.nombre.trim()} ${formValues.apellidos.trim()}`,
       email: formValues.correo,
       password: formValues.password,
-      // Concatenamos el +56 que el usuario no escribió
       telefono: `+56${formValues.telefono}`,
       rol: 'CLIENTE'
     };
 
-    console.log('Datos listos para Django:', payloadDjango);
-    alert('¡Formulario válido y listo para enviar!');
+    this.http.post('http://127.0.0.1:8000/api/register/', payloadDjango).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        alert('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.');
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error al registrar:', err);
+        this.errorMessage = err.error?.error || 'Ocurrió un error al registrar la cuenta.';
+        alert(this.errorMessage);
+      }
+    });
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { BuscadorVehiculoService } from './services/buscador-vehiculo.service';
@@ -15,12 +15,16 @@ export class App implements OnInit {
   vehiculoEncontrado: any = null;
   mensajeError: string = '';
   
+  // Estado del usuario logueado
+  usuario: { username: string; nombre?: string; is_staff: boolean } | null = null;
+  
   // Variable para controlar qué pestaña está activa y mover el subrayado
   activeTab: string = 'datos'; 
 
   constructor(
     private fb: FormBuilder,
-    private buscadorService: BuscadorVehiculoService
+    private buscadorService: BuscadorVehiculoService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -28,6 +32,33 @@ export class App implements OnInit {
       patente: [''],
       vin: ['']
     });
+
+    // Verificamos si hay sesión activa al cargar la aplicación
+    this.verificarSesion();
+  }
+
+  verificarSesion(): void {
+    const username = localStorage.getItem('username');
+    const isStaff = localStorage.getItem('is_staff') === 'true';
+    const userRaw = localStorage.getItem('user');
+    const userObj = userRaw ? JSON.parse(userRaw) : null;
+
+    if (username) {
+      this.usuario = {
+        username,
+        nombre: localStorage.getItem('nombre') || userObj?.nombre,
+        is_staff: isStaff
+      };
+    }
+  }
+
+  logout(): void {
+    localStorage.removeItem('username');
+    localStorage.removeItem('nombre');
+    localStorage.removeItem('is_staff');
+    localStorage.removeItem('user');
+    this.usuario = null;
+    this.router.navigate(['/login']);
   }
 
   cambiarTab(tab: string): void {
