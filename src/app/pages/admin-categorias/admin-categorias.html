@@ -1,0 +1,128 @@
+<div class="container-fluid py-4 px-4 text-white">
+
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Panel de Administración</h2>
+    <p class="text-secondary mb-3">Categorías y subcategorías del catálogo.</p>
+
+    <!-- Navegación entre secciones del panel -->
+    <ul class="nav nav-pills gap-2">
+      <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin">Inventario</a></li>
+      <li class="nav-item"><a class="nav-link bg-brand text-white" routerLink="/admin/categorias">Categorías y subcategorías</a></li>
+    </ul>
+  </div>
+
+  <div *ngIf="mensaje" class="alert border-0 small py-2" [class.alert-success]="mensaje.tipo === 'ok'" [class.alert-danger]="mensaje.tipo === 'error'">
+    {{ mensaje.texto }}
+  </div>
+
+  <div class="row">
+
+    <!-- COLUMNA IZQUIERDA: formularios -->
+    <div class="col-lg-4 mb-4">
+
+      <!-- Categoría -->
+      <div class="card bg-dark text-white border-secondary shadow-sm mb-4">
+        <div class="card-header border-secondary fw-bold bg-dark text-white d-flex justify-content-between align-items-center">
+          <span>{{ editandoCatId ? 'Editar categoría' : 'Nueva categoría' }}</span>
+          <button *ngIf="editandoCatId" class="btn btn-sm btn-outline-secondary py-0" (click)="cancelarCategoria()">Cancelar</button>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="catForm" (ngSubmit)="guardarCategoria()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Nombre *</label>
+              <input type="text" class="form-control bg-secondary text-white border-0" formControlName="nombre" placeholder="Ej: Suspensión">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Descripción</label>
+              <textarea class="form-control bg-secondary text-white border-0" rows="2" formControlName="descripcion" placeholder="Opcional"></textarea>
+            </div>
+            <button type="submit" class="btn w-100 fw-bold border-0 text-white" [ngStyle]="{'background-color': editandoCatId ? '#0d6efd' : '#5a8d6e'}" [disabled]="catForm.invalid">
+              {{ editandoCatId ? 'Guardar cambios' : 'Crear categoría' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Subcategoría -->
+      <div class="card bg-dark text-white border-secondary shadow-sm">
+        <div class="card-header border-secondary fw-bold bg-dark text-white d-flex justify-content-between align-items-center">
+          <span>{{ editandoSubId ? 'Editar subcategoría' : 'Nueva subcategoría' }}</span>
+          <button *ngIf="editandoSubId" class="btn btn-sm btn-outline-secondary py-0" (click)="cancelarSubcategoria()">Cancelar</button>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="subForm" (ngSubmit)="guardarSubcategoria()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Categoría *</label>
+              <select class="form-select bg-secondary text-white border-0" formControlName="categoria">
+                <option value="" disabled>Selecciona categoría...</option>
+                <option *ngFor="let c of categorias" [value]="c.id">{{ c.nombre }}</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Nombre *</label>
+              <input type="text" class="form-control bg-secondary text-white border-0" formControlName="nombre" placeholder="Ej: Amortiguadores">
+            </div>
+            <button type="submit" class="btn w-100 fw-bold border-0 text-white" [ngStyle]="{'background-color': editandoSubId ? '#0d6efd' : '#5a8d6e'}" [disabled]="subForm.invalid">
+              {{ editandoSubId ? 'Guardar cambios' : 'Crear subcategoría' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: listado -->
+    <div class="col-lg-8">
+      <div class="card bg-dark text-white border-secondary shadow-sm">
+        <div class="card-header border-secondary bg-dark text-white fw-bold d-flex align-items-center gap-2">
+          Categorías registradas
+          <span class="badge bg-secondary">{{ categorias.length }}</span>
+        </div>
+
+        <div class="card-body p-0">
+          <div *ngIf="categorias.length === 0" class="text-center text-secondary py-5">Aún no hay categorías.</div>
+
+          <div *ngFor="let c of categorias" class="border-bottom border-secondary">
+
+            <!-- Fila de categoría -->
+            <div class="d-flex align-items-center justify-content-between px-3 py-3">
+              <div>
+                <div class="fw-bold">{{ c.nombre }}</div>
+                <div class="small text-secondary">
+                  {{ c.descripcion || 'Sin descripción' }} ·
+                  {{ subcategoriasDe(c.id).length }} subcategorías · {{ repuestosDeCategoria(c.id) }} repuestos
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary text-light" (click)="editarCategoria(c)">Editar</button>
+                <button class="btn btn-sm btn-outline-danger" (click)="eliminarCategoria(c)"
+                        [disabled]="repuestosDeCategoria(c.id) > 0"
+                        [title]="repuestosDeCategoria(c.id) > 0 ? 'Tiene repuestos: muévelos o elimínalos primero' : 'Eliminar categoría'">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            <!-- Subcategorías de esa categoría -->
+            <div *ngFor="let s of subcategoriasDe(c.id)" class="d-flex align-items-center justify-content-between ps-5 pe-3 py-2" style="background-color: rgba(255,255,255,0.03);">
+              <div>
+                <span class="text-secondary me-2">↳</span>{{ s.nombre }}
+                <span class="small text-secondary ms-2">{{ repuestosDeSubcategoria(s.id) }} repuestos</span>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary text-light py-0" (click)="editarSubcategoria(s)">Editar</button>
+                <button class="btn btn-sm btn-outline-danger py-0" (click)="eliminarSubcategoria(s)"
+                        [disabled]="repuestosDeSubcategoria(s.id) > 0"
+                        [title]="repuestosDeSubcategoria(s.id) > 0 ? 'Tiene repuestos asociados' : 'Eliminar subcategoría'">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="subcategoriasDe(c.id).length === 0" class="ps-5 pb-3 small text-secondary">Sin subcategorías.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

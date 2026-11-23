@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { BuscadorVehiculoService } from './services/buscador-vehiculo.service';
+import { AdminCrudService } from './services/admin-crud';
+import { CatalogoFiltroService } from './services/catalogo-filtro';
+import { VehiculoSeleccionService } from './services/vehiculo-seleccion.service';
+import { CarritoService } from './services/carrito.service';
 
 @Component({
   selector: 'app-root',
@@ -12,29 +15,34 @@ import { BuscadorVehiculoService } from './services/buscador-vehiculo.service';
 })
 export class App implements OnInit {
   buscadorForm!: FormGroup;
-  vehiculoEncontrado: any = null;
   mensajeError: string = '';
-  
-  // Estado del usuario logueado
+
   usuario: { username: string; nombre?: string; is_staff: boolean } | null = null;
-  
-  // Variable para controlar qué pestaña está activa y mover el subrayado
-  activeTab: string = 'datos'; 
+  activeTab: string = 'datos';
+
+  categorias: any[] = [];
+  subcategorias: any[] = [];
+  categoriaAbierta: number | null = null;
+  errorCategorias = false;
 
   constructor(
     private fb: FormBuilder,
-    private buscadorService: BuscadorVehiculoService,
-    private router: Router
+    private router: Router,
+    private crud: AdminCrudService,
+    public filtro: CatalogoFiltroService,
+    public veh: VehiculoSeleccionService,
+    public carrito: CarritoService
   ) {}
 
-  ngOnInit(): void {
-    this.buscadorForm = this.fb.group({
-      patente: [''],
-      vin: ['']
-    });
+  /** El header lee el vehículo desde el servicio compartido */
+  get vehiculoEncontrado() {
+    return this.veh.actual;
+  }
 
-    // Verificamos si hay sesión activa al cargar la aplicación
+  ngOnInit(): void {
+    this.buscadorForm = this.fb.group({ patente: [''], vin: [''] });
     this.verificarSesion();
+    this.cargarCategorias();
   }
 
   verificarSesion(): void {
@@ -53,38 +61,92 @@ export class App implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('username');
-    localStorage.removeItem('nombre');
-    localStorage.removeItem('is_staff');
-    localStorage.removeItem('user');
-    this.usuario = null;
-    this.router.navigate(['/login']);
+    const limpiar = () => {
+      localStorage.removeItem('username');
+      localStorage.removeItem('nombre');
+      localStorage.removeItem('is_staff');
+      localStorage.removeItem('user');
+      this.usuario = null;
+      this.router.navigate(['/login']);
+    };
+    // Cierra también la sesión de Django; si falla, igual se limpia el navegador
+    this.crud.logout().subscribe({ next: limpiar, error: limpiar });
   }
 
   cambiarTab(tab: string): void {
     this.activeTab = tab;
+    this.mensajeError = '';
   }
 
+  // --- Vehículo (modal) ---
   ejecutarBusqueda(tipo: 'patente' | 'vin'): void {
     this.mensajeError = '';
-    
     const valor = this.buscadorForm.get(tipo)?.value;
     if (!valor) return;
 
-    this.buscadorService.buscar(valor).subscribe({
-      next: (data) => {
-        this.vehiculoEncontrado = data;
-        // Cierra el modal automáticamente al tener éxito
-        document.getElementById('btnCerrarModal')?.click();
-      },
-      error: (err) => {
-        this.mensajeError = 'Vehículo no encontrado. Verifica los datos ingresados.';
-      }
+    this.veh.buscarIdentificador(valor).subscribe({
+      next: () => document.getElementById('btnCerrarModal')?.click(),
+      error: () => (this.mensajeError = 'Vehículo no encontrado. Verifica los datos ingresados.')
     });
   }
 
+  agregarPorDatos(): void {
+    if (this.veh.aplicarDatos()) {
+      document.getElementById('btnCerrarModal')?.click();
+    }
+  }
+
   limpiarVehiculo(): void {
-    this.vehiculoEncontrado = null;
+    this.veh.limpiar();
     this.buscadorForm.reset();
+  }
+
+  // --- Buscador del header ---
+  buscar(event: Event, texto: string): void {
+    event.preventDefault();
+    this.filtro.buscarTexto(texto);
+    this.router.navigate(['/']);
+  }
+
+  // --- Carrito ---
+  clp(valor: number): string {
+    return '$' + Number(valor).toLocaleString('es-CL');
+  }
+
+  // --- Categorías ---
+  cargarCategorias(): void {
+    this.errorCategorias = false;
+
+    this.crud.getCategorias().subscribe({
+      next: (data: any) => (this.categorias = Array.isArray(data) ? data : (data?.results ?? [])),
+      error: (err: any) => {
+        console.error('Error al cargar categorías:', err);
+        this.errorCategorias = true;
+      }
+    });
+
+    this.crud.getSubcategorias().subscribe({
+      next: (data: any) => (this.subcategorias = Array.isArray(data) ? data : (data?.results ?? [])),
+      error: (err: any) => console.error('Error al cargar subcategorías:', err)
+    });
+  }
+
+  subcategoriasDe(categoriaId: number): any[] {
+    return this.subcategorias.filter(s => s.categoria === categoriaId);
+  }
+
+  toggleCategoria(categoriaId: number): void {
+    this.categoriaAbierta = this.categoriaAbierta === categoriaId ? null : categoriaId;
+  }
+
+  /** Redirige a la página de la categoría/subcategoría (o al Home si es "Todos") */
+  filtrarCatalogo(categoria: any | null, subcategoria: any | null = null): void {
+    if (!categoria) {
+      this.filtro.limpiar();
+      this.router.navigate(['/']);
+      return;
+    }
+    this.categoriaAbierta = categoria.id;
+    this.router.navigate(subcategoria ? ['/categoria', categoria.id, subcategoria.id] : ['/categoria', categoria.id]);
   }
 }

@@ -1,0 +1,108 @@
+<div class="container mt-4 text-white">
+
+  <!-- Migas de pan -->
+  <nav class="small mb-3">
+    <a routerLink="/" class="text-white text-decoration-none">Inicio</a>
+    <span class="mx-2">›</span>
+    <ng-container *ngIf="subcategoria; else soloCategoria">
+      <a [routerLink]="['/categoria', categoriaId]" class="text-white text-decoration-none">{{ categoria?.nombre }}</a>
+      <span class="mx-2">›</span>
+      <span class="fw-bold">{{ subcategoria.nombre }}</span>
+    </ng-container>
+    <ng-template #soloCategoria><span class="fw-bold">{{ categoria?.nombre }}</span></ng-template>
+  </nav>
+
+  <div *ngIf="cargando" class="alert bg-dark text-white border-secondary text-center">Cargando...</div>
+  <div *ngIf="error" class="alert bg-dark text-white border-danger text-center">
+    No se pudo cargar la categoría. Verifica que el backend esté corriendo.
+    <button type="button" class="btn btn-sm btn-brand ms-2" (click)="cargar()">Reintentar</button>
+  </div>
+  <div *ngIf="!cargando && !error && !categoria" class="alert bg-dark text-white border-secondary text-center">
+    Esta categoría no existe. <a routerLink="/" class="text-success">Volver al inicio</a>
+  </div>
+
+  <ng-container *ngIf="!cargando && !error && categoria">
+
+    <h3 class="fw-bold mb-1">{{ titulo }}</h3>
+    <p class="mb-4">{{ lista.length }} repuestos</p>
+
+    <div class="row g-4">
+
+      <!-- BARRA LATERAL DE FILTROS -->
+      <aside class="col-12 col-lg-3">
+
+        <div *ngIf="subcategoriasDeCategoria.length" class="mb-4">
+          <h6 class="fw-bold text-uppercase">Subcategorías</h6>
+          <ul class="list-unstyled small mb-0">
+            <li class="mb-1">
+              <a [routerLink]="['/categoria', categoriaId]" class="text-white text-decoration-none"
+                 [class.fw-bold]="subcategoriaId === null" [class.text-decoration-underline]="subcategoriaId === null">
+                Todas ({{ conteo('TODOS') }})
+              </a>
+            </li>
+            <li *ngFor="let s of subcategoriasDeCategoria" class="mb-1">
+              <a [routerLink]="['/categoria', categoriaId, s.id]" class="text-white text-decoration-none"
+                 [class.fw-bold]="subcategoriaId === s.id" [class.text-decoration-underline]="subcategoriaId === s.id">
+                {{ s.nombre }} ({{ conteoSub(s.id) }})
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="fw-bold text-uppercase">Estado del producto</h6>
+          <div *ngFor="let c of condicionesVista" class="form-check">
+            <input class="form-check-input" type="radio" name="condicion" [id]="'cond-' + c.valor"
+                   [checked]="condicion === c.valor" (change)="elegirCondicion(c.valor)">
+            <label class="form-check-label small" [for]="'cond-' + c.valor">{{ c.label }} ({{ conteo(c.valor) }})</label>
+          </div>
+        </div>
+
+        <div class="mb-4" *ngIf="marcas.length">
+          <h6 class="fw-bold text-uppercase">Marca</h6>
+          <div *ngFor="let m of marcas; let i = index" class="form-check">
+            <input class="form-check-input" type="checkbox" [id]="'marca-' + i"
+                   [checked]="marcaActiva(m.nombre)" (change)="toggleMarca(m.nombre)">
+            <label class="form-check-label small" [for]="'marca-' + i">{{ m.nombre }} ({{ m.cantidad }})</label>
+          </div>
+        </div>
+
+        <button *ngIf="hayFiltros" type="button" class="btn btn-sm btn-outline-secondary text-light" (click)="limpiarFiltros()">
+          ✕ Limpiar filtros
+        </button>
+      </aside>
+
+      <!-- LISTADO -->
+      <section class="col-12 col-lg-9">
+
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div *ngIf="veh.actual as v" class="small">
+            Compatibles con <strong>{{ v.marca }} {{ v.modelo }}</strong>
+            <a href="javascript:void(0)" class="text-success ms-2" (click)="veh.limpiar()">Quitar</a>
+          </div>
+          <div class="ms-auto d-flex align-items-center gap-2">
+            <label class="small" for="orden">Ordenar</label>
+            <select id="orden" class="form-select form-select-sm" style="width: auto;" [(ngModel)]="orden">
+              <option value="stock">Más stock</option>
+              <option value="precio_asc">Precio: menor a mayor</option>
+              <option value="precio_desc">Precio: mayor a menor</option>
+              <option value="nombre">Nombre A-Z</option>
+            </select>
+          </div>
+        </div>
+
+        <div *ngIf="lista.length === 0" class="alert bg-dark text-white border-secondary text-center">
+          No hay repuestos con estos filtros.
+          <a routerLink="/solicitar-repuesto" class="text-success">¿No encuentras tu repuesto? Solicítalo aquí.</a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+          <div class="col d-flex" *ngFor="let p of lista">
+            <app-tarjeta-repuesto [p]="p"></app-tarjeta-repuesto>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </ng-container>
+</div>

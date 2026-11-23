@@ -2,7 +2,13 @@
   
   <div class="mb-4">
     <h2 class="fw-bold mb-1">Panel de Administración de Inventario</h2>
-    <p class="text-secondary mb-0">Gestión de repuestos, stock y compatibilidad automotriz.</p>
+        <p class="text-secondary mb-3">Gestión de repuestos, stock y compatibilidad automotriz.</p>
+
+    <!-- Navegación entre secciones del panel -->
+    <ul class="nav nav-pills gap-2">
+      <li class="nav-item"><a class="nav-link bg-brand text-white" routerLink="/admin">Inventario</a></li>
+      <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin/categorias">Categorías y subcategorías</a></li>
+    </ul>
   </div>
   
   <div class="row">
@@ -19,6 +25,11 @@
             <div class="mb-3">
               <label class="form-label small fw-semibold">Código / SKU *</label>
               <input type="text" class="form-control bg-secondary text-white border-0" formControlName="sku" placeholder="Ej: ALT-8921">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Código OEM <span class="text-secondary fw-normal">(n° de pieza de fábrica)</span></label>
+              <input type="text" class="form-control bg-secondary text-white border-0" formControlName="codigo_oem" placeholder="Ej: 26300-35503">
             </div>
 
             <div class="mb-3">
@@ -60,6 +71,13 @@
                 <label class="form-label small fw-semibold">Peso (kg) *</label>
                 <input type="number" step="0.1" class="form-control bg-secondary text-white border-0" formControlName="peso_kg">
               </div>
+            </div>
+
+            <!-- Detalle de desgaste: solo para Usado / Reacondicionado (Desarmaduría) -->
+            <div class="mb-3" *ngIf="esUsado">
+              <label class="form-label small fw-semibold">Detalle de desgaste</label>
+              <textarea class="form-control bg-secondary text-white border-0" rows="3" formControlName="detalle_desgaste"
+                        placeholder="Ej: Leve opacidad en la esquina inferior, sin quebraduras. Probada y funcionando."></textarea>
             </div>
 
             <!-- Selector de Vehículos con Buscador y Checkmarks -->
@@ -120,13 +138,20 @@
               </div>
             </div>
 
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="chkActivo" formControlName="activo">
+              <label class="form-check-label small fw-semibold" for="chkActivo">Visible en la tienda (activo)</label>
+            </div>
+
             <div class="mb-3">
               <label class="form-label small fw-semibold">Imagen del Producto</label>
               <input type="file" class="form-control bg-secondary text-white border-0" (change)="onFileSelected($event)" accept="image/*">
             </div>
             
-            <button type="submit" class="btn w-100 fw-bold border-0 text-white" [ngStyle]="{'background-color': editandoId ? '#0d6efd' : '#5a8d6e'}" [disabled]="repuestoForm.invalid">
-              {{ editandoId ? 'Guardar Cambios' : 'Registrar Repuesto' }}
+            <div *ngIf="mensajeError" class="alert alert-danger small py-2 mb-3 border-0">{{ mensajeError }}</div>
+
+            <button type="submit" class="btn w-100 fw-bold border-0 text-white" [ngStyle]="{'background-color': editandoId ? '#0d6efd' : '#5a8d6e'}" [disabled]="repuestoForm.invalid || guardando">
+              {{ guardando ? 'Guardando...' : (editandoId ? 'Guardar Cambios' : 'Registrar Repuesto') }}
             </button>
 
           </form>
@@ -148,7 +173,7 @@
           <!-- Buscador en tiempo real -->
           <div class="input-group" style="width: 300px;">
             <span class="input-group-text bg-secondary border-0 text-white"><i class="bi bi-search">🔍</i></span>
-            <input type="text" class="form-control bg-secondary border-0 text-white" placeholder="Buscar por SKU o Nombre..." [(ngModel)]="terminoBusqueda" (input)="filtrarRepuestos()">
+            <input type="text" class="form-control bg-secondary border-0 text-white" placeholder="Buscar por SKU, OEM o Nombre..." [(ngModel)]="terminoBusqueda" (input)="filtrarRepuestos()">
           </div>
         </div>
 
@@ -159,6 +184,7 @@
                 <tr class="border-secondary text-secondary small">
                   <th class="px-3">Imagen</th>
                   <th>SKU</th>
+                  <th>OEM</th>
                   <th>Nombre y Compatibilidad</th>
                   <th>Categoría</th>
                   <th>Precio</th>
@@ -174,10 +200,17 @@
                   
                   <!-- SKU Separado -->
                   <td class="font-monospace text-warning small">{{ rep.sku }}</td>
+
+                  <!-- Código OEM (n° de pieza de fábrica) -->
+                  <td class="font-monospace small text-info">{{ rep.codigo_oem || '—' }}</td>
                   
                   <!-- Nombre y Autos Múltiples -->
                   <td>
-                    <div class="fw-bold">{{ rep.nombre }}</div>
+                    <div class="fw-bold">
+                      {{ rep.nombre }}
+                      <span *ngIf="rep.condicion !== 'NUEVO'" class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">{{ rep.condicion === 'REACONDICIONADO' ? 'Reacond.' : 'Usado' }}</span>
+                      <span *ngIf="rep.activo === false" class="badge bg-danger ms-1" style="font-size: 0.65rem;">Oculto</span>
+                    </div>
                     <div class="text-secondary small mt-1" style="font-size: 0.75rem;">
                       <span class="badge bg-secondary me-1" *ngFor="let auto of rep.vehiculos_nombres">{{ auto }}</span>
                     </div>
@@ -215,7 +248,7 @@
                   
                 </tr>
                 <tr *ngIf="repuestosFiltrados.length === 0">
-                  <td colspan="7" class="text-center text-secondary py-5">
+                  <td colspan="8" class="text-center text-secondary py-5">
                     No se encontraron repuestos.
                   </td>
                 </tr>

@@ -1,0 +1,34 @@
+<div class="container mt-5" style="max-width: 640px;">
+  <h2 class="fw-bold mb-2">¿No encuentras tu repuesto?</h2>
+  <p class="mb-4">Cuéntanos qué pieza necesitas y te cotizamos.</p>
+
+  <div *ngIf="estado === 'ok'" class="alert bg-dark border-success text-white">
+    ✅ Recibimos tu solicitud. Te contactaremos con una cotización.
+  </div>
+  <div *ngIf="estado === 'login'" class="alert bg-dark border-warning text-white">
+    Debes <a routerLink="/login" class="text-warning">iniciar sesión</a> para enviar una solicitud.
+  </div>
+  <div *ngIf="mensajeError" class="alert bg-dark border-danger text-white">{{ mensajeError }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="enviar()" class="card product-card p-4 text-white">
+    <div class="mb-3">
+      <label class="form-label small">Patente o VIN de tu vehículo</label>
+      <input class="form-control" formControlName="vehiculo" maxlength="17" placeholder="Ej: ABCD12" style="text-transform: uppercase;">
+    </div>
+    <div class="mb-3">
+      <label class="form-label small">Pieza que necesitas *</label>
+      <input class="form-control" formControlName="pieza" maxlength="200" placeholder="Ej: Espejo retrovisor izquierdo">
+    </div>
+    <div class="mb-4">
+      <label class="form-label small">Urgencia</label>
+      <select class="form-select" formControlName="urgencia">
+        <option value="BAJA">Baja</option>
+        <option value="MEDIA">Media</option>
+        <option value="ALTA">Alta</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-brand fw-bold" [disabled]="form.invalid || enviando">
+      {{ enviando ? 'Enviando...' : 'Enviar solicitud' }}
+    </button>
+  </form>
+</div>

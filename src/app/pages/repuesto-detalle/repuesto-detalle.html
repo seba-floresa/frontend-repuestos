@@ -1,0 +1,106 @@
+<div class="container mt-4 mb-5">
+
+  <div *ngIf="cargando" class="alert bg-dark text-white border-secondary text-center">
+    Cargando repuesto...
+  </div>
+
+  <div *ngIf="noEncontrado" class="alert bg-dark text-white border-secondary text-center">
+    No encontramos este repuesto.
+    <a routerLink="/" class="text-white fw-bold ms-2">Volver al catálogo</a>
+  </div>
+
+  <ng-container *ngIf="repuesto">
+
+    <!-- Migas de pan -->
+    <nav class="small mb-4 text-muted">
+      <a routerLink="/" class="text-white text-decoration-none">Inicio</a>
+      <span class="mx-2">›</span>
+      <a href="javascript:void(0)" class="text-white text-decoration-none" (click)="verCategoria(false)">{{ repuesto.categoria_nombre }}</a>
+      <ng-container *ngIf="repuesto.subcategoria_nombre">
+        <span class="mx-2">›</span>
+        <a href="javascript:void(0)" class="text-white text-decoration-none" (click)="verCategoria(true)">{{ repuesto.subcategoria_nombre }}</a>
+      </ng-container>
+    </nav>
+
+    <div class="row g-4">
+
+      <!-- Imagen -->
+      <div class="col-12 col-md-6">
+        <div class="bg-white rounded d-flex align-items-center justify-content-center" style="height: 380px;">
+          <img *ngIf="fotos.length" [src]="fotos[fotoActiva]" class="p-3" style="max-height: 380px; max-width: 100%; object-fit: contain;" [alt]="repuesto.nombre">
+          <span *ngIf="!fotos.length" class="text-secondary">Sin imagen</span>
+        </div>
+
+        <div *ngIf="fotos.length > 1" class="d-flex gap-2 mt-2 flex-wrap">
+          <button *ngFor="let f of fotos; let i = index" type="button" class="p-0 bg-white rounded border-2"
+                  [class.border-success]="fotoActiva === i" [class.border-secondary]="fotoActiva !== i"
+                  style="width: 72px; height: 72px; border-style: solid;" (click)="fotoActiva = i">
+            <img [src]="f" style="width: 100%; height: 100%; object-fit: contain;" alt="Foto">
+          </button>
+        </div>
+        <small *ngIf="esDesarmaduria" class="text-muted d-block mt-2">📷 Pieza de desarmaduría: las fotos corresponden al repuesto real.</small>
+      </div>
+
+      <!-- Información -->
+      <div class="col-12 col-md-6">
+
+        <div class="d-flex flex-wrap gap-1 mb-2">
+          <span class="badge bg-secondary">{{ repuesto.categoria_nombre }}</span>
+          <span *ngIf="repuesto.subcategoria_nombre" class="badge bg-secondary">{{ repuesto.subcategoria_nombre }}</span>
+          <span *ngIf="!esDesarmaduria" class="badge bg-brand">Nuevo</span>
+          <span *ngIf="esDesarmaduria" class="badge bg-warning text-dark">
+            {{ enDesarmaduria ? 'Desarmaduría · ' + (repuesto.condicion === 'REACONDICIONADO' ? 'Reacondicionado' : 'Usado') : 'Reacondicionado' }}
+          </span>
+        </div>
+
+        <h2 class="fw-bold mb-1">{{ repuesto.nombre }}</h2>
+        <p class="text-muted mb-3">{{ repuesto.marca_fabricante }}</p>
+
+        <h2 class="fw-bold mb-1">{{ precioCLP(repuesto.precio) }}</h2>
+        <p class="mb-3"
+           [class.text-warning]="repuesto.stock > 0 && repuesto.stock <= 3"
+           [class.text-danger]="repuesto.stock === 0"
+           [class.text-light]="repuesto.stock > 3">
+          {{ repuesto.stock === 0 ? 'Sin stock' : (esDesarmaduria && repuesto.stock === 1 ? 'Pieza única disponible' : repuesto.stock + ' unidades disponibles') }}
+        </p>
+
+        <!-- Detalle de desgaste -->
+        <div *ngIf="esDesarmaduria" class="border border-warning rounded p-3 mb-3 text-warning">
+          <strong class="d-block mb-1">Detalle de desgaste</strong>
+          {{ repuesto.detalle_desgaste || 'Consulta el estado de la pieza con el vendedor.' }}
+        </div>
+
+        <!-- Datos técnicos -->
+        <table class="table table-dark table-sm mb-3">
+          <tbody>
+            <tr><td class="text-muted" style="width: 40%;">SKU</td><td class="font-monospace">{{ repuesto.sku }}</td></tr>
+            <tr><td class="text-muted">Código OEM</td><td class="font-monospace">{{ repuesto.codigo_oem || '—' }}</td></tr>
+            <tr><td class="text-muted">Condición</td><td>{{ repuesto.condicion === 'NUEVO' ? 'Nuevo' : (repuesto.condicion === 'USADO' ? 'Usado (desarmaduría)' : 'Reacondicionado') }}</td></tr>
+            <tr><td class="text-muted">Peso</td><td>{{ repuesto.peso_kg }} kg</td></tr>
+          </tbody>
+        </table>
+
+        <!-- Compatibilidad -->
+        <h6 class="fw-bold">Compatibilidad vehicular</h6>
+        <div class="d-flex flex-wrap gap-1 mb-4">
+          <span *ngFor="let v of repuesto.vehiculos_nombres" class="badge bg-secondary">{{ v }}</span>
+          <span *ngIf="!repuesto.vehiculos_nombres?.length" class="text-muted small">Compatibilidad no especificada.</span>
+        </div>
+
+        <!-- Cantidad + carrito -->
+        <div class="d-flex gap-3 align-items-center">
+          <div class="d-flex align-items-center border border-secondary rounded">
+            <button type="button" class="btn btn-sm text-white" (click)="cambiarCantidad(-1)" [disabled]="cantidad <= 1">−</button>
+            <span class="px-3 fw-bold">{{ cantidad }}</span>
+            <button type="button" class="btn btn-sm text-white" (click)="cambiarCantidad(1)" [disabled]="cantidad >= repuesto.stock">+</button>
+          </div>
+          <button type="button" class="btn btn-brand fw-bold flex-grow-1" [disabled]="repuesto.stock === 0" (click)="agregarAlCarrito()">
+            Agregar al Carrito · {{ precioCLP(repuesto.precio * cantidad) }}
+          </button>
+        </div>
+
+        <a routerLink="/" class="d-inline-block mt-4 text-white">← Volver al catálogo</a>
+      </div>
+    </div>
+  </ng-container>
+</div>

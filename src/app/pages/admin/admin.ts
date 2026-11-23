@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminCrudService } from '../../services/admin-crud';
+import { RouterLink } from '@angular/router'; 
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './admin.html',
   styleUrl: './admin.css'
 })
@@ -23,6 +24,8 @@ export class AdminComponent implements OnInit {
   terminoBusqueda: string = '';
   filtroVehiculo: string = '';
   editandoId: number | null = null;
+  mensajeError: string = '';
+  guardando = false;
 
   constructor(
     private fb: FormBuilder,
@@ -32,11 +35,14 @@ export class AdminComponent implements OnInit {
   ngOnInit(): void {
     this.repuestoForm = this.fb.group({
       sku: ['', Validators.required],
+      codigo_oem: [''],
       nombre: ['', Validators.required],
       marca_fabricante: ['', Validators.required],
       categoria: ['', Validators.required],
       subcategoria: ['', Validators.required],
       condicion: ['NUEVO', Validators.required],
+      detalle_desgaste: [''],
+      activo: [true],
       peso_kg: [1.0, [Validators.required, Validators.min(0.01)]],
       precio: ['', [Validators.required, Validators.min(0)]],
       stock: ['', [Validators.required, Validators.min(0)]],
@@ -97,7 +103,9 @@ export class AdminComponent implements OnInit {
     this.repuestosFiltrados = this.repuestos.filter(
       (rep) =>
         (rep.nombre || '').toLowerCase().includes(busqueda) ||
-        (rep.sku || '').toLowerCase().includes(busqueda)
+        (rep.sku || '').toLowerCase().includes(busqueda) ||
+        (rep.codigo_oem || '').toLowerCase().includes(busqueda) ||
+        (rep.marca_fabricante || '').toLowerCase().includes(busqueda)
     );
   }
 
@@ -167,14 +175,19 @@ export class AdminComponent implements OnInit {
   }
 
   guardarRepuesto(): void {
-    if (this.repuestoForm.invalid) return;
+    if (this.repuestoForm.invalid || this.guardando) return;
+
+    this.mensajeError = '';
+    this.guardando = true;
 
     const formData = new FormData();
     Object.keys(this.repuestoForm.value).forEach((key) => {
+      const valor = this.repuestoForm.value[key];
       if (key === 'vehiculos') {
-        formData.append(key, JSON.stringify(this.repuestoForm.value[key] || []));
+        formData.append(key, JSON.stringify(valor || []));
       } else {
-        formData.append(key, this.repuestoForm.value[key]);
+        // Evita enviar la palabra "null" cuando un campo está vacío
+        formData.append(key, valor === null || valor === undefined ? '' : valor);
       }
     });
 
@@ -188,14 +201,35 @@ export class AdminComponent implements OnInit {
 
     peticion$.subscribe({
       next: () => {
+        this.guardando = false;
         this.cargarRepuestos();
         this.cancelarEdicion();
       },
-      error: (err: any) => console.error('Error al guardar repuesto:', err)
+      error: (err: any) => {
+        this.guardando = false;
+        console.error('Error al guardar repuesto:', err);
+        this.mensajeError = this.extraerError(err);
+      }
     });
   }
 
+  /** Convierte el error de DRF en un texto legible (ej: "sku: repuesto con este sku ya existe.") */
+  private extraerError(err: any): string {
+    const e = err?.error;
+    if (e && typeof e === 'object') {
+      return Object.keys(e)
+        .map((k) => `${k}: ${Array.isArray(e[k]) ? e[k].join(' ') : e[k]}`)
+        .join(' · ');
+    }
+    return 'No se pudo guardar el repuesto. Revisa los datos o tu sesión de administrador.';
+  }
+
+  get esUsado(): boolean {
+    return this.repuestoForm.get('condicion')?.value !== 'NUEVO';
+  }
+
   cargarParaEditar(repuesto: any): void {
+    this.mensajeError = '';
     this.editandoId = repuesto.id;
     this.subcategoriasFiltradas = this.subcategorias.filter(
       (sub) => sub.categoria == repuesto.categoria_id
@@ -207,11 +241,14 @@ export class AdminComponent implements OnInit {
 
     this.repuestoForm.patchValue({
       sku: repuesto.sku,
+      codigo_oem: repuesto.codigo_oem || '',
       nombre: repuesto.nombre,
       marca_fabricante: repuesto.marca_fabricante,
       categoria: repuesto.categoria_id,
       subcategoria: repuesto.subcategoria_id,
       condicion: repuesto.condicion || 'NUEVO',
+      detalle_desgaste: repuesto.detalle_desgaste || '',
+      activo: repuesto.activo !== false,
       peso_kg: repuesto.peso_kg || 1.0,
       precio: repuesto.precio,
       stock: repuesto.stock,
@@ -223,13 +260,17 @@ export class AdminComponent implements OnInit {
 
   cancelarEdicion(): void {
     this.editandoId = null;
+    this.mensajeError = '';
     this.archivoImagen = null;
     this.filtroVehiculo = '';
     this.subcategoriasFiltradas = [];
     this.repuestoForm.reset({
+      codigo_oem: '',
       categoria: '',
       subcategoria: '',
       condicion: 'NUEVO',
+      detalle_desgaste: '',
+      activo: true,
       peso_kg: 1.0,
       vehiculos: []
     });

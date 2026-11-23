@@ -1,0 +1,43 @@
+<div class="card product-card shadow-sm text-white">
+
+  <a [routerLink]="['/repuesto', p.id]" class="bg-white d-flex align-items-center justify-content-center text-decoration-none" style="border-radius: 8px 8px 0 0; height: 180px;">
+    <img *ngIf="imagenUrl()" [src]="imagenUrl()" class="p-3" style="height: 180px; object-fit: contain; width: 100%;" alt="Repuesto">
+    <span *ngIf="!imagenUrl()" class="text-secondary small">Sin imagen</span>
+  </a>
+
+  <div class="card-body d-flex flex-column">
+    <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
+      <span class="badge bg-secondary">{{ p.categoria_nombre || 'Repuesto' }}</span>
+      <span *ngIf="!esDesarmaduria" class="badge bg-brand">Nuevo</span>
+      <span *ngIf="esDesarmaduria" class="badge bg-warning text-dark">
+        {{ enDesarmaduria ? 'Desarmaduría · ' + (p.condicion === 'REACONDICIONADO' ? 'Reacondicionado' : 'Usado') : 'Reacondicionado' }}
+      </span>
+      <span class="ms-auto text-light" style="font-size: 0.65rem;">SKU {{ p.sku }}</span>
+    </div>
+
+    <h6 class="card-title fw-bold text-truncate" [title]="p.nombre">
+      <a [routerLink]="['/repuesto', p.id]" class="text-white text-decoration-none">{{ p.nombre }}</a>
+    </h6>
+    <p class="card-text text-muted small mb-1">{{ p.marca_fabricante }}</p>
+    <p class="card-text mb-2 fw-bold fs-6 text-info">OEM: {{ p.codigo_oem || '—' }}</p>
+
+    <p class="card-text text-muted small mb-2 text-truncate" [title]="(p.vehiculos_nombres || []).join(', ')">
+      🔧 {{ compatibilidad() }}
+    </p>
+
+    <div *ngIf="esDesarmaduria" class="border border-warning rounded p-2 mb-2 small text-warning">
+      <strong>Detalle de desgaste:</strong>
+      {{ p.detalle_desgaste || 'Consulta el estado de la pieza con el vendedor.' }}
+    </div>
+
+    <h4 class="mt-auto fw-bold mb-0">{{ precioCLP(p.precio) }}</h4>
+    <small [class.text-warning]="p.stock > 0 && p.stock <= 3" [class.text-danger]="p.stock === 0" [class.text-light]="p.stock > 3">
+      {{ p.stock === 0 ? 'Sin stock' : 'Stock: ' + p.stock }}
+    </small>
+  </div>
+
+  <div class="card-footer border-top-0 pt-0 bg-transparent">
+    <button class="btn btn-brand w-100 fw-bold" [disabled]="p.stock === 0" (click)="agregar()">Agregar al Carrito</button>
+  </div>
+
+</div>

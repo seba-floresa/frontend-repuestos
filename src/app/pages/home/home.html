@@ -1,34 +1,151 @@
-<div class="container mt-5">
-  <h4 class="fw-bold mb-4">Lo más reciente 🔥</h4>
-  
-  <div class="row row-cols-1 row-cols-md-4 g-4">
-    
-    <div class="col-12" *ngIf="products.length === 0">
-      <div class="alert bg-dark text-white border-secondary text-center w-100">
-        Cargando catálogo...
+<div class="container mt-4">
+
+  <!-- BANNER DESARMADURÍA -->
+  <section class="rounded-4 overflow-hidden mb-4 text-white"
+           style="background: linear-gradient(90deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.35) 100%), url('/desarmaduria.jpg') center / cover no-repeat;">
+    <div class="p-4 p-md-5" style="max-width: 580px;">
+      <span class="badge bg-warning text-dark mb-2">Desarmaduría</span>
+      <h3 class="fw-bold">Desarmaduría: repuestos de segunda mano</h3>
+      <p class="mb-3">Piezas usadas con su estado y desgaste detallados, para que sepas exactamente qué estás comprando.</p>
+      <a class="btn btn-brand fw-bold" [routerLink]="desarmaduriaId ? ['/categoria', desarmaduriaId] : ['/']">Ver piezas de desarmaduría</a>
+    </div>
+  </section>
+
+  <!-- BUSCADOR GRANDE DE VEHÍCULO -->
+  <section class="rounded-4 p-3 p-md-4 mb-5 text-center" style="border: 4px solid #3F7856; background-color: #2a2a2a;">
+    <h4 class="fw-bold mb-1">Repuestos de autos en Chile</h4>
+    <p class="mb-4">Selecciona tu vehículo y encuentra el repuesto perfecto</p>
+
+    <div class="d-flex justify-content-center gap-2 mb-3">
+      <button type="button" class="btn btn-sm fw-semibold" [class.btn-brand]="tabVeh === 'datos'" [class.btn-outline-secondary]="tabVeh !== 'datos'" [class.text-light]="tabVeh !== 'datos'" (click)="cambiarTabVeh('datos')">Datos</button>
+      <button type="button" class="btn btn-sm fw-semibold" [class.btn-brand]="tabVeh === 'patente'" [class.btn-outline-secondary]="tabVeh !== 'patente'" [class.text-light]="tabVeh !== 'patente'" (click)="cambiarTabVeh('patente')">Patente</button>
+      <button type="button" class="btn btn-sm fw-semibold" [class.btn-brand]="tabVeh === 'vin'" [class.btn-outline-secondary]="tabVeh !== 'vin'" [class.text-light]="tabVeh !== 'vin'" (click)="cambiarTabVeh('vin')">N° Vin</button>
+    </div>
+
+    <!-- Datos -->
+    <div *ngIf="tabVeh === 'datos'" class="row g-2 text-start align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="small mb-1">Marca *</label>
+        <select class="form-select" (change)="veh.elegirMarca($any($event.target).value)">
+          <option value="">Selecciona una opción...</option>
+          <option *ngFor="let m of veh.marcas" [value]="m" [selected]="m === veh.marca">{{ m }}</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="small mb-1">Modelo *</label>
+        <select class="form-select" [disabled]="!veh.marca" (change)="veh.elegirModelo($any($event.target).value)">
+          <option value="">Selecciona una opción...</option>
+          <option *ngFor="let m of veh.modelos" [value]="m" [selected]="m === veh.modelo">{{ m }}</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="small mb-1">Versión *</label>
+        <select class="form-select" [disabled]="!veh.modelo" (change)="veh.elegirVersion($any($event.target).value)">
+          <option value="">Selecciona una opción...</option>
+          <option *ngFor="let v of veh.versiones" [value]="v.id" [selected]="v.id === veh.versionId">{{ veh.etiquetaVersion(v) }}</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
+        <button type="button" class="btn btn-brand w-100 fw-bold" [disabled]="!veh.versionId" (click)="buscarPorDatos()">Buscar</button>
       </div>
     </div>
 
-    <div class="col" *ngFor="let p of products">
-      <div class="card product-card h-100 shadow-sm text-white">
-        
-        <div class="bg-white" style="border-radius: 8px 8px 0 0; text-align: center;">
-          <img *ngIf="p.image" [src]="p.image.includes('http') ? p.image : 'http://127.0.0.1:8000' + p.image" class="p-3" style="height: 180px; object-fit: contain; width: 100%;" alt="Repuesto">
-        </div>
-        
-        <div class="card-body d-flex flex-column">
-          <span class="badge bg-secondary mb-2 align-self-start">{{ p.category?.name || 'Repuesto' }}</span>
-          <h6 class="card-title fw-bold text-truncate">{{ p.name }}</h6>
-          <p class="card-text text-muted small mb-2">SKU: {{ p.sku }}</p>
-          <h4 class="mt-auto fw-bold">${{ p.price }}</h4>
-        </div>
-        
-        <div class="card-footer border-top-0 pt-0 bg-transparent">
-          <button class="btn btn-brand w-100 fw-bold">Agregar al Carrito</button>
-        </div>
-        
+    <!-- Patente -->
+    <div *ngIf="tabVeh === 'patente'" class="row g-2 justify-content-center">
+      <div class="col-12 col-md-6">
+        <input #pat type="text" class="form-control" placeholder="Ej: ABCD12" maxlength="6" style="text-transform: uppercase;" (keyup.enter)="buscarPorIdentificador(pat.value)">
       </div>
+      <div class="col-12 col-md-3">
+        <button type="button" class="btn btn-brand w-100 fw-bold" (click)="buscarPorIdentificador(pat.value)">Buscar</button>
+      </div>
+    </div>
+
+    <!-- VIN -->
+    <div *ngIf="tabVeh === 'vin'" class="row g-2 justify-content-center">
+      <div class="col-12 col-md-6">
+        <input #vin type="text" class="form-control" placeholder="Ingresa los 17 caracteres" maxlength="17" style="text-transform: uppercase;" (keyup.enter)="buscarPorIdentificador(vin.value)">
+      </div>
+      <div class="col-12 col-md-3">
+        <button type="button" class="btn btn-brand w-100 fw-bold" (click)="buscarPorIdentificador(vin.value)">Buscar</button>
+      </div>
+    </div>
+
+    <div *ngIf="errorVeh" class="text-danger small mt-2">{{ errorVeh }}</div>
+  </section>
+
+  <!-- CATÁLOGO -->
+  <div id="catalogo">
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <h4 class="fw-bold m-0">{{ titulo }}</h4>
+      <button *ngIf="filtro.categoriaId !== null || filtro.texto" type="button" class="btn btn-sm btn-outline-secondary text-light" (click)="quitarFiltro()">
+        ✕ Quitar filtro
+      </button>
+    </div>
+
+    <!-- Vehículo activo -->
+    <div *ngIf="veh.actual as v" class="alert bg-dark border-success text-white d-flex flex-wrap align-items-center justify-content-between gap-2 py-2 small">
+      <span>Mostrando repuestos compatibles con <strong>{{ v.marca }} {{ v.modelo }}</strong> {{ v.anio }}</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary text-light" (click)="veh.limpiar()">Quitar vehículo</button>
+    </div>
+
+    <!-- Cuadrícula de tarjetas -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+
+      <div class="col-12" *ngIf="cargando">
+        <div class="alert bg-dark text-white border-secondary text-center w-100">Cargando catálogo...</div>
+      </div>
+
+      <div class="col-12" *ngIf="error">
+        <div class="alert bg-dark text-white border-danger text-center w-100">
+          No se pudo cargar el catálogo. Verifica que el backend esté corriendo.
+          <button type="button" class="btn btn-sm btn-brand ms-2" (click)="cargarRepuestos()">Reintentar</button>
+        </div>
+      </div>
+
+      <div class="col-12" *ngIf="!cargando && !error && repuestosFiltrados.length === 0">
+        <div class="alert bg-dark text-white border-secondary text-center w-100">
+          No hay repuestos para este filtro.
+          <a routerLink="/solicitar-repuesto" class="text-success">¿No encuentras tu repuesto? Solicítalo aquí.</a>
+        </div>
+      </div>
+
+      <div class="col d-flex" *ngFor="let p of repuestosFiltrados">
+        <app-tarjeta-repuesto [p]="p"></app-tarjeta-repuesto>
+      </div>
+
+    </div>
+
+    <div *ngIf="recortado" class="text-center mt-4">
+      <p class="small mb-2">Mostrando los {{ repuestosFiltrados.length }} repuestos con más stock de {{ totalPortada }}.</p>
+      <button type="button" class="btn btn-outline-secondary text-light fw-semibold" (click)="verTodo = true">Ver catálogo completo</button>
     </div>
 
   </div>
+
+  <!-- FRANJA DE BENEFICIOS -->
+  <section class="row g-3 text-center my-5">
+    <div class="col-12 col-md-4">
+      <div class="h-100 rounded-3 p-4 text-white" style="background-color: #2a2a2a; border: 1px solid #444;">
+        <i class="bi bi-truck fs-1" style="color: #5a8d6e;"></i>
+        <h6 class="fw-bold mt-2 mb-1">Despacho a todo Chile</h6>
+        <p class="small mb-0">Enviamos tu pedido donde estés.</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="h-100 rounded-3 p-4 text-white" style="background-color: #2a2a2a; border: 1px solid #444;">
+        <i class="bi bi-credit-card fs-1" style="color: #5a8d6e;"></i>
+        <h6 class="fw-bold mt-2 mb-1">Pago seguro con Webpay</h6>
+        <p class="small mb-0">Paga con tarjeta de débito o crédito.</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="h-100 rounded-3 p-4 text-white" style="background-color: #2a2a2a; border: 1px solid #444;">
+        <i class="bi bi-check2-circle fs-1" style="color: #5a8d6e;"></i>
+        <h6 class="fw-bold mt-2 mb-1">Compatibilidad verificada</h6>
+        <p class="small mb-0">Cada repuesto indica con qué vehículos es compatible.</p>
+      </div>
+    </div>
+  </section>
+
 </div>

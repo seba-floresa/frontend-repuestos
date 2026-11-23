@@ -1,0 +1,189 @@
+<div class="container py-4" style="max-width: 1150px;">
+  <h2 class="fw-bold mb-4 text-white">Finalizar compra</h2>
+
+  <!-- Pedido confirmado -->
+  <div *ngIf="pedido" class="card bg-dark border-success text-white">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+      <h3 class="mt-3 text-white">¡Pedido confirmado!</h3>
+      <p class="mb-1 text-white">Tu número de pedido es <strong>#{{ pedido.pedido_id }}</strong>.</p>
+      <p class="mb-1 text-white">Total pagado: <strong>{{ clp(pedido.monto_total) }}</strong></p>
+      <p class="text-white">Enviaremos el detalle a <strong>{{ pedido.email }}</strong>.</p>
+      <a routerLink="/" class="btn btn-brand mt-2">Seguir comprando</a>
+    </div>
+  </div>
+
+  <div *ngIf="!pedido">
+    <!-- Carrito vacío -->
+    <div *ngIf="!carrito.items.length" class="alert alert-secondary">
+      Tu carrito está vacío. <a routerLink="/">Volver al catálogo</a>
+    </div>
+
+    <div class="row g-4" *ngIf="carrito.items.length">
+      <!-- Columna izquierda -->
+      <div class="col-lg-8">
+
+        <!-- Productos -->
+        <div class="card bg-dark text-white border-secondary mb-4">
+          <div class="card-header fw-bold text-white">Tus productos ({{ carrito.cantidadTotal }})</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-transparent text-white d-flex align-items-center gap-3"
+                *ngFor="let i of carrito.items">
+              <img [src]="i.imagen" alt="" width="64" height="64"
+                   style="object-fit: cover; border-radius: 6px;">
+              <div class="flex-grow-1">
+                <div class="fw-bold text-white">{{ i.nombre }}</div>
+                <small class="text-white">SKU {{ i.sku }} · {{ clp(i.precio) }} c/u</small>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  <button type="button" class="btn btn-sm btn-outline-light py-0 px-2"
+                          (click)="cambiar(i.id, -1)">−</button>
+                  <span class="text-white">{{ i.cantidad }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-light py-0 px-2"
+                          (click)="cambiar(i.id, 1)">+</button>
+                  <button type="button" class="btn btn-link btn-sm text-danger" (click)="quitar(i.id)">Quitar</button>
+                </div>
+              </div>
+              <strong class="text-white">{{ clp(i.precio * i.cantidad) }}</strong>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Datos de quien recibe -->
+        <form [formGroup]="form" class="card bg-dark text-white border-secondary mb-4" (ngSubmit)="pagar()">
+          <div class="card-header fw-bold text-white">Datos de contacto</div>
+          <div class="card-body">
+            <p class="small text-white mb-3" *ngIf="!logueado">
+              Puedes comprar sin cuenta. ¿Ya tienes una? <a routerLink="/login">Inicia sesión</a>.
+            </p>
+
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label text-white">Correo electrónico *</label>
+                <input type="email" class="form-control" formControlName="email"
+                       [class.is-invalid]="invalido('email')" placeholder="tucorreo@ejemplo.cl">
+                <div class="invalid-feedback">Ingresa un correo válido.</div>
+                <div class="form-text text-white">Aquí te enviaremos el detalle de tu pedido.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-white">Nombre *</label>
+                <input type="text" class="form-control" formControlName="nombre"
+                       [class.is-invalid]="invalido('nombre')">
+                <div class="invalid-feedback">Ingresa el nombre.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-white">Apellido *</label>
+                <input type="text" class="form-control" formControlName="apellido"
+                       [class.is-invalid]="invalido('apellido')">
+                <div class="invalid-feedback">Ingresa el apellido.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-white">RUT *</label>
+                <input type="text" class="form-control" formControlName="rut"
+                       [class.is-invalid]="invalido('rut')" placeholder="12345678-9">
+                <div class="invalid-feedback">El RUT no es válido.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-white">Teléfono *</label>
+                <div class="input-group">
+                  <span class="input-group-text">+56 9</span>
+                  <input type="tel" class="form-control" formControlName="telefono" maxlength="8"
+                         [class.is-invalid]="invalido('telefono')" placeholder="12345678">
+                  <div class="invalid-feedback">Ingresa los 8 dígitos del teléfono.</div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label text-white">Patente o N° de chasis (opcional)</label>
+                <input type="text" class="form-control" formControlName="patente" placeholder="Ej: ABCD12">
+                <div class="form-text text-white">Con esto verificamos que el repuesto sea el correcto para tu vehículo.</div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Despacho -->
+        <div class="card bg-dark text-white border-secondary">
+          <div class="card-header fw-bold text-white">Despacho</div>
+          <div class="card-body" [formGroup]="form">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label text-white">Región *</label>
+                <select class="form-select" (change)="elegirRegion($any($event.target).value)">
+                  <option value="">Selecciona una región...</option>
+                  <option *ngFor="let r of regiones" [value]="r" [selected]="r === region">{{ r }}</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-white">Comuna *</label>
+                <select class="form-select" [disabled]="!region"
+                        (change)="elegirComuna($any($event.target).value)">
+                  <option value="">Selecciona una comuna...</option>
+                  <option *ngFor="let c of comunas" [value]="c.id" [selected]="c.id === tarifaId">{{ c.comuna }}</option>
+                </select>
+              </div>
+
+              <div class="col-md-8">
+                <label class="form-label text-white">Dirección (calle y número) *</label>
+                <input type="text" class="form-control" formControlName="direccion"
+                       [class.is-invalid]="invalido('direccion')" placeholder="Ej: Av. Providencia 1234">
+                <div class="invalid-feedback">Ingresa calle y número.</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-white">Depto / casa / oficina</label>
+                <input type="text" class="form-control" formControlName="complemento" placeholder="Opcional">
+              </div>
+
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="chkInstr"
+                         [(checked)]="mostrarInstrucciones"
+                         (change)="mostrarInstrucciones = $any($event.target).checked">
+                  <label class="form-check-label text-white" for="chkInstr">Agregar instrucciones de entrega</label>
+                </div>
+                <textarea *ngIf="mostrarInstrucciones" class="form-control mt-2" rows="2"
+                          formControlName="instrucciones"
+                          placeholder="Ej: Dejar con el conserje"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha: resumen -->
+      <div class="col-lg-4">
+        <div class="card bg-dark text-white border-secondary">
+          <div class="card-header fw-bold text-white">Resumen</div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2 text-white">
+              <span>Subtotal</span>
+              <span>{{ clp(cotizacion ? cotizacion.subtotal : carrito.total) }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 text-white">
+              <span>Despacho</span>
+              <span>{{ cotizacion ? clp(cotizacion.costo_envio) : 'Elige tu comuna' }}</span>
+            </div>
+            <small class="text-white d-block mb-2" *ngIf="cotizacion">
+              Entrega estimada: {{ cotizacion.dias_habiles }} día(s) hábil(es)
+            </small>
+            <hr>
+            <div class="d-flex justify-content-between fs-4 fw-bold mb-3 text-white">
+              <span>Total</span>
+              <span>{{ cotizacion ? clp(cotizacion.monto_total) : '—' }}</span>
+            </div>
+
+            <div class="alert alert-danger py-2 small" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+            <button type="button" class="btn btn-brand w-100" [disabled]="!puedePagar" (click)="pagar()">
+              {{ enviando ? 'Procesando...' : 'Pagar con Webpay' }}
+            </button>
+            <small class="text-white d-block mt-2">
+              Pago simulado para la demostración. El stock se descuenta al confirmar.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

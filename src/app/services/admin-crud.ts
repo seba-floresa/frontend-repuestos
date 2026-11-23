@@ -70,6 +70,63 @@ export class AdminCrudService {
     });
   }
 
+
+    // Un solo repuesto (página de detalle)
+  getRepuesto(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}repuestos/${id}/`);
+  }
+
+  // CRUD de categorías
+  crearCategoria(data: { nombre: string; descripcion?: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}categorias/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  actualizarCategoria(id: number, data: { nombre: string; descripcion?: string }): Observable<any> {
+    return this.http.patch(`${this.apiUrl}categorias/${id}/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  eliminarCategoria(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}categorias/${id}/`, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  // CRUD de subcategorías
+  crearSubcategoria(data: { categoria: number; nombre: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}subcategorias/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  actualizarSubcategoria(id: number, data: { categoria: number; nombre: string }): Observable<any> {
+    return this.http.patch(`${this.apiUrl}subcategorias/${id}/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  eliminarSubcategoria(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}subcategorias/${id}/`, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  logout(): Observable<any> {
+    return this.http.post(`${this.apiUrl}logout/`, {}, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
   // Método para autenticar al usuario contra la base de datos
   login(credentials: { email: string; password: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}login/`, credentials, {
