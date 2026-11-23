@@ -64,6 +64,10 @@
           {{ repuesto.stock === 0 ? 'Sin stock' : (esDesarmaduria && repuesto.stock === 1 ? 'Pieza única disponible' : repuesto.stock + ' unidades disponibles') }}
         </p>
 
+        <p *ngIf="repuesto.descripcion" class="mb-3" style="white-space: pre-line;">{{ repuesto.descripcion }}</p>
+
+        <p *ngIf="cambioRecomendado" class="mb-3 text-info">🔧 Cambio recomendado: {{ cambioRecomendado }}</p>
+
         <!-- Detalle de desgaste -->
         <div *ngIf="esDesarmaduria" class="border border-warning rounded p-3 mb-3 text-warning">
           <strong class="d-block mb-1">Detalle de desgaste</strong>

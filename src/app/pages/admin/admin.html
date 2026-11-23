@@ -8,6 +8,7 @@
     <ul class="nav nav-pills gap-2">
       <li class="nav-item"><a class="nav-link bg-brand text-white" routerLink="/admin">Inventario</a></li>
       <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin/categorias">Categorías y subcategorías</a></li>
+      <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin/carga-masiva">Carga masiva</a></li>
     </ul>
   </div>
   
@@ -23,8 +24,8 @@
           <form [formGroup]="repuestoForm" (ngSubmit)="guardarRepuesto()">
             
             <div class="mb-3">
-              <label class="form-label small fw-semibold">Código / SKU *</label>
-              <input type="text" class="form-control bg-secondary text-white border-0" formControlName="sku" placeholder="Ej: ALT-8921">
+              <label class="form-label small fw-semibold" for="inpSku">Código / SKU <span class="text-secondary fw-normal">(vacío = automático)</span></label>
+              <input id="inpSku" type="text" class="form-control bg-secondary text-white border-0" formControlName="sku" placeholder="Se genera, ej: RS-FIL-0001">
             </div>
 
             <div class="mb-3">
@@ -35,6 +36,23 @@
             <div class="mb-3">
               <label class="form-label small fw-semibold">Nombre del Repuesto *</label>
               <input type="text" class="form-control bg-secondary text-white border-0" formControlName="nombre" placeholder="Ej: Filtro de Aceite Original">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="inpDescripcion">Descripción</label>
+              <textarea id="inpDescripcion" class="form-control bg-secondary text-white border-0" rows="3" formControlName="descripcion"
+                        placeholder="Ej: Filtro de aceite de alta eficiencia para motores bencineros."></textarea>
+            </div>
+
+            <div class="row">
+              <div class="col-7 mb-3">
+                <label class="form-label small fw-semibold" for="inpKm">Cambio cada (km)</label>
+                <input id="inpKm" type="number" min="1" class="form-control bg-secondary text-white border-0" formControlName="intervalo_cambio_km" placeholder="Ej: 10000">
+              </div>
+              <div class="col-5 mb-3">
+                <label class="form-label small fw-semibold" for="inpMeses">o (meses)</label>
+                <input id="inpMeses" type="number" min="1" class="form-control bg-secondary text-white border-0" formControlName="intervalo_cambio_meses" placeholder="Ej: 12">
+              </div>
             </div>
 
             <div class="mb-3">

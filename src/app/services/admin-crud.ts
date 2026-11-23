@@ -71,6 +71,17 @@ export class AdminCrudService {
   }
 
 
+  // Carga masiva por CSV: modo "validar" (no guarda) o "importar"
+  cargaMasiva(archivo: File, modo: 'validar' | 'importar'): Observable<any> {
+    const formData = new FormData();
+    formData.append('archivo', archivo, archivo.name);
+    formData.append('modo', modo);
+    return this.http.post(`${this.apiUrl}repuestos/carga-masiva/`, formData, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
     // Un solo repuesto (página de detalle)
   getRepuesto(id: number): Observable<any> {
     return this.http.get(`${this.apiUrl}repuestos/${id}/`);

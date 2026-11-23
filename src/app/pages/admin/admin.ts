@@ -34,9 +34,12 @@ export class AdminComponent implements OnInit {
 
   ngOnInit(): void {
     this.repuestoForm = this.fb.group({
-      sku: ['', Validators.required],
+      sku: [''], // vacío: el servidor genera uno (RS-FIL-0001)
       codigo_oem: [''],
       nombre: ['', Validators.required],
+      descripcion: [''],
+      intervalo_cambio_km: [null, Validators.min(1)],
+      intervalo_cambio_meses: [null, Validators.min(1)],
       marca_fabricante: ['', Validators.required],
       categoria: ['', Validators.required],
       subcategoria: ['', Validators.required],
@@ -243,6 +246,9 @@ export class AdminComponent implements OnInit {
       sku: repuesto.sku,
       codigo_oem: repuesto.codigo_oem || '',
       nombre: repuesto.nombre,
+      descripcion: repuesto.descripcion || '',
+      intervalo_cambio_km: repuesto.intervalo_cambio_km,
+      intervalo_cambio_meses: repuesto.intervalo_cambio_meses,
       marca_fabricante: repuesto.marca_fabricante,
       categoria: repuesto.categoria_id,
       subcategoria: repuesto.subcategoria_id,
@@ -265,7 +271,9 @@ export class AdminComponent implements OnInit {
     this.filtroVehiculo = '';
     this.subcategoriasFiltradas = [];
     this.repuestoForm.reset({
+      sku: '',
       codigo_oem: '',
+      descripcion: '',
       categoria: '',
       subcategoria: '',
       condicion: 'NUEVO',

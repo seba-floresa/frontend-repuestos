@@ -5,6 +5,7 @@ import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
 import { AdminComponent } from './pages/admin/admin';
 import { AdminCategoriasComponent } from './pages/admin-categorias/admin-categorias';
+import { AdminCargaMasivaComponent } from './pages/admin-carga-masiva/admin-carga-masiva';
 import { Devoluciones } from './pages/devoluciones/devoluciones';
 import { SolicitarRepuesto } from './pages/solicitar-repuesto/solicitar-repuesto';
 import { RepuestoDetalle } from './pages/repuesto-detalle/repuesto-detalle';
@@ -27,6 +28,7 @@ export const routes: Routes = [
   { path: 'registro', component: Register },
   { path: 'admin', component: AdminComponent, canActivate: [adminGuard] },
   { path: 'admin/categorias', component: AdminCategoriasComponent, canActivate: [adminGuard] },
+  { path: 'admin/carga-masiva', component: AdminCargaMasivaComponent, canActivate: [adminGuard] },
   { path: 'pago-resultado', component: PagoResultado },
   { path: '**', redirectTo: '' } // Si escriben mal la URL, los manda al inicio
 ];

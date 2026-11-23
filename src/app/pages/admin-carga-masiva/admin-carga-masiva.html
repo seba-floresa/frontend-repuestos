@@ -1,0 +1,75 @@
+<div class="container-fluid py-4 px-4 text-white">
+
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Panel de Administración</h2>
+    <p class="text-secondary mb-3">Carga masiva de repuestos desde un archivo CSV.</p>
+
+    <!-- Navegación entre secciones del panel -->
+    <ul class="nav nav-pills gap-2">
+      <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin">Inventario</a></li>
+      <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin/categorias">Categorías y subcategorías</a></li>
+      <li class="nav-item"><a class="nav-link bg-brand text-white" routerLink="/admin/carga-masiva">Carga masiva</a></li>
+    </ul>
+  </div>
+
+  <div class="card bg-dark text-white border-secondary shadow-sm mb-4">
+    <div class="card-body">
+      <p class="small text-secondary mb-2">
+        Columnas: nombre, marca, categoria, subcategoria, condicion, precio, stock_disponible, codigo_oem,
+        descripcion, intervalo_cambio_km, intervalo_cambio_meses y sku (opcional: si va vacío se genera, ej. RS-FIL-0001).
+        Separador coma o punto y coma. Categoría y subcategoría deben existir con el mismo nombre.
+      </p>
+      <a href="plantilla-repuestos.csv" download class="small text-info d-inline-block mb-3">⬇ Descargar plantilla CSV de ejemplo</a>
+
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <label for="inpCsv" class="visually-hidden">Archivo CSV</label>
+        <input id="inpCsv" type="file" accept=".csv,text/csv" class="form-control bg-secondary text-white border-0" style="max-width: 420px;" (change)="onArchivo($event)">
+        <button type="button" class="btn btn-outline-light fw-bold" [disabled]="!archivo || enviando" (click)="enviar('validar')">
+          {{ enviando ? 'Procesando...' : 'Validar' }}
+        </button>
+        <button type="button" class="btn btn-brand fw-bold" [disabled]="!puedeImportar || enviando" (click)="enviar('importar')">
+          Importar {{ puedeImportar ? informe.validas + ' válidos' : '' }}
+        </button>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger small py-2 mt-3 mb-0 border-0" role="alert">{{ error }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="informe" class="card bg-dark text-white border-secondary shadow-sm">
+    <div class="card-header border-secondary bg-dark text-white d-flex flex-wrap gap-2 align-items-center" role="status">
+      <span class="fw-bold me-2">{{ informe.modo === 'importar' ? 'Resultado de la importación' : 'Resultado de la validación' }}</span>
+      <span class="badge bg-secondary">{{ informe.total }} filas</span>
+      <span class="badge bg-success">{{ informe.validas }} válidas</span>
+      <span class="badge bg-danger" *ngIf="informe.con_error">{{ informe.con_error }} con error</span>
+      <span class="badge bg-info text-dark" *ngIf="informe.modo === 'importar'">{{ informe.creadas }} creadas</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+        <table class="table table-dark table-hover table-sm mb-0 align-middle">
+          <thead class="position-sticky top-0">
+            <tr class="text-secondary small">
+              <th class="px-3">Fila</th>
+              <th>Nombre</th>
+              <th>SKU</th>
+              <th>Estado</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of informe.filas">
+              <td class="px-3 text-secondary">{{ f.fila }}</td>
+              <td>{{ f.nombre || '—' }}</td>
+              <td class="font-monospace small text-warning">{{ f.sku || (f.ok ? '(automático)' : '—') }}</td>
+              <td>
+                <span *ngIf="f.ok" class="badge bg-success">{{ informe.modo === 'importar' ? 'Creado' : 'OK' }}</span>
+                <span *ngIf="!f.ok" class="badge bg-danger">Error</span>
+              </td>
+              <td class="small" [class.text-danger]="!f.ok">{{ f.motivo }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

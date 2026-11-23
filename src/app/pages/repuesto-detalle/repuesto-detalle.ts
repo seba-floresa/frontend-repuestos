@@ -68,6 +68,16 @@ export class RepuestoDetalle implements OnInit {
     return String(this.repuesto?.categoria_nombre ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('desarmaduria');
   }
 
+  /** "cada 10.000 km o 12 meses"; vacío si no tiene intervalos */
+  get cambioRecomendado(): string {
+    const km = this.repuesto?.intervalo_cambio_km;
+    const meses = this.repuesto?.intervalo_cambio_meses;
+    const partes = [];
+    if (km) partes.push(`${km.toLocaleString('es-CL')} km`);
+    if (meses) partes.push(`${meses} ${meses === 1 ? 'mes' : 'meses'}`);
+    return partes.length ? 'cada ' + partes.join(' o ') : '';
+  }
+
   /** Imagen principal + fotos reales (urls_fotos_reales) si existen */
   get fotos(): string[] {
     if (!this.repuesto) return [];
