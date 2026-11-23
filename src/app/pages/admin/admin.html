@@ -221,7 +221,7 @@
                     <div class="text-muted" style="font-size: 0.7rem;">{{ rep.subcategoria_nombre }}</div>
                   </td>
                   
-                  <td class="fw-bold text-success">${{ rep.precio | number }}</td>
+                  <td class="fw-bold text-success">{{ rep.precio | currency }}</td>
                   
                   <!-- Control rápido de Stock -->
                   <td class="text-center">

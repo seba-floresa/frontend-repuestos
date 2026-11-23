@@ -173,11 +173,6 @@ export class Checkout implements OnInit {
     form.submit();
   }
 
-  // --- Helpers ---
-  clp(valor: number): string {
-    return '$' + Number(valor).toLocaleString('es-CL');
-  }
-
   private cuerpo(simular: boolean) {
     const v = this.form.getRawValue();
     return {

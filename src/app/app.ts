@@ -109,9 +109,6 @@ export class App implements OnInit {
   }
 
   // --- Carrito ---
-  clp(valor: number): string {
-    return '$' + Number(valor).toLocaleString('es-CL');
-  }
 
   // --- Categorías ---
   cargarCategorias(): void {

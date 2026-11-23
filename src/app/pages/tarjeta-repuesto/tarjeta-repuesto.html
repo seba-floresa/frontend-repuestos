@@ -30,7 +30,7 @@
       {{ p.detalle_desgaste || 'Consulta el estado de la pieza con el vendedor.' }}
     </div>
 
-    <h4 class="mt-auto fw-bold mb-0">{{ precioCLP(p.precio) }}</h4>
+    <h4 class="mt-auto fw-bold mb-0">{{ p.precio | currency }}</h4>
     <small [class.text-warning]="p.stock > 0 && p.stock <= 3" [class.text-danger]="p.stock === 0" [class.text-light]="p.stock > 3">
       {{ p.stock === 0 ? 'Sin stock' : 'Stock: ' + p.stock }}
     </small>

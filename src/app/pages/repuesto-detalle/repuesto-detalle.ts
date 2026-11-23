@@ -82,9 +82,6 @@ export class RepuestoDetalle implements OnInit {
     return url.startsWith('http') ? url : 'http://localhost:8000' + url;
   }
 
-  precioCLP(valor: number): string {
-    return '$' + Number(valor).toLocaleString('es-CL');
-  }
 
   cambiarCantidad(delta: number): void {
     const nueva = this.cantidad + delta;

@@ -56,7 +56,7 @@
         <h2 class="fw-bold mb-1">{{ repuesto.nombre }}</h2>
         <p class="text-muted mb-3">{{ repuesto.marca_fabricante }}</p>
 
-        <h2 class="fw-bold mb-1">{{ precioCLP(repuesto.precio) }}</h2>
+        <h2 class="fw-bold mb-1">{{ repuesto.precio | currency }}</h2>
         <p class="mb-3"
            [class.text-warning]="repuesto.stock > 0 && repuesto.stock <= 3"
            [class.text-danger]="repuesto.stock === 0"
@@ -95,7 +95,7 @@
             <button type="button" class="btn btn-sm text-white" (click)="cambiarCantidad(1)" [disabled]="cantidad >= repuesto.stock">+</button>
           </div>
           <button type="button" class="btn btn-brand fw-bold flex-grow-1" [disabled]="repuesto.stock === 0" (click)="agregarAlCarrito()">
-            Agregar al Carrito · {{ precioCLP(repuesto.precio * cantidad) }}
+            Agregar al Carrito · {{ repuesto.precio * cantidad | currency }}
           </button>
         </div>
 

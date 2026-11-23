@@ -27,7 +27,4 @@ export class PagoResultado implements OnInit {
     if (this.estado === 'ok') this.carrito.vaciar();
   }
 
-  clp(valor: number): string {
-    return '$' + Number(valor).toLocaleString('es-CL');
-  }
 }

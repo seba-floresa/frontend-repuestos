@@ -29,9 +29,6 @@ export class TarjetaRepuesto {
     return this.p.imagen.startsWith('http') ? this.p.imagen : 'http://localhost:8000' + this.p.imagen;
   }
 
-  precioCLP(valor: number): string {
-    return '$' + Number(valor).toLocaleString('es-CL');
-  }
 
   compatibilidad(): string {
     const lista: string[] = this.p.vehiculos_nombres || [];
