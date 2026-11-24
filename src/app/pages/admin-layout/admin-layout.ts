@@ -14,6 +14,7 @@ export class AdminLayoutComponent {
   secciones = [
     { ruta: 'resumen', texto: 'Resumen', icono: 'bi-speedometer2' },
     { ruta: 'pedidos', texto: 'Pedidos', icono: 'bi-receipt' },
+    { ruta: 'clientes', texto: 'Clientes', icono: 'bi-people' },
     { ruta: 'inventario', texto: 'Inventario', icono: 'bi-box-arrow-in-down' },
     { ruta: 'catalogo', texto: 'Catálogo', icono: 'bi-table' },
     { ruta: 'categorias', texto: 'Categorías', icono: 'bi-tags' },

@@ -1,0 +1,59 @@
+<div class="text-white">
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Clientes</h2>
+    <p class="text-secondary mb-0">Agrupados por correo a partir de los pedidos. {{ total }} clientes.</p>
+  </div>
+
+  <div class="card bg-dark text-white border-secondary mb-3">
+    <div class="card-body">
+      <label class="form-label small" for="cBuscar">Buscar</label>
+      <input id="cBuscar" type="search" class="form-control bg-secondary text-white border-0" style="max-width: 420px;"
+             placeholder="Correo o nombre..." [(ngModel)]="q" (ngModelChange)="buscar()">
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger border-0 small py-2">{{ error }}</div>
+
+  <div class="card bg-dark text-white border-secondary shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle">
+        <thead>
+          <tr class="text-secondary small">
+            <th class="px-3">Cliente</th>
+            <th class="text-end">Pedidos</th>
+            <th class="text-end">Total gastado</th>
+            <th>Última compra</th>
+            <th class="px-3"><span class="visually-hidden">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody [class.opacity-50]="cargando">
+          @for (c of clientes; track c.email_cliente) {
+            <tr>
+              <td class="px-3"><div>{{ c.nombre }} {{ c.apellido }}</div><div class="small text-secondary">{{ c.email_cliente }}</div></td>
+              <td class="text-end">
+                {{ c.pedidos }}
+                <div class="small text-secondary">{{ c.pedidos_pagados }} pagados</div>
+              </td>
+              <td class="text-end fw-bold text-success text-nowrap">{{ c.total_gastado | currency }}</td>
+              <td class="text-nowrap">{{ c.ultima_compra ? (c.ultima_compra | date: 'dd/MM/yyyy') : 'Sin compras pagadas' }}</td>
+              <td class="px-3 text-end">
+                <a class="btn btn-sm btn-outline-light" routerLink="/admin/clientes/detalle" [queryParams]="{ email: c.email_cliente }">Historial</a>
+              </td>
+            </tr>
+          } @empty {
+            @if (!cargando) {
+              <tr><td colspan="5" class="text-center text-secondary py-5">No hay clientes con esta búsqueda.</td></tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span class="small text-secondary">Página {{ pagina }} de {{ totalPaginas }}</span>
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-outline-light" [disabled]="pagina <= 1 || cargando" (click)="irAPagina(pagina - 1)">← Anterior</button>
+        <button type="button" class="btn btn-sm btn-outline-light" [disabled]="pagina >= totalPaginas || cargando" (click)="irAPagina(pagina + 1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>

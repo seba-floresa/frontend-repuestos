@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AdminCrudService } from '../../services/admin-crud';
+import { textoEstado } from '../admin-layout/estados';
 
 @Component({
   selector: 'app-admin-resumen',
@@ -19,13 +20,7 @@ export class AdminResumenComponent implements OnInit {
     { valor: '30d', texto: '30 días' },
     { valor: 'todo', texto: 'Todo' },
   ];
-  nombresEstado: Record<string, string> = {
-    PAGADO: 'Pagados',
-    PENDIENTE_PAGO: 'Pendientes de pago',
-    REVISAR_STOCK: 'Revisar stock',
-    RECHAZADO: 'Rechazados',
-    ANULADO: 'Anulados',
-  };
+  readonly textoEstado = textoEstado;
 
   periodo = '7d';
   datos: any = null;

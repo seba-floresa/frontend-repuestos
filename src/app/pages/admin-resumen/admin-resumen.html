@@ -97,7 +97,7 @@
             <ul class="list-group list-group-flush">
               @for (e of estados; track e.estado) {
                 <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between px-0">
-                  <span>{{ nombresEstado[e.estado] || e.estado }}</span>
+                  <span>{{ textoEstado(e.estado) }}</span>
                   <span class="badge bg-secondary">{{ e.cantidad }}</span>
                 </li>
               } @empty {

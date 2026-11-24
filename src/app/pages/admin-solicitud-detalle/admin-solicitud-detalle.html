@@ -1,0 +1,63 @@
+<div class="text-white">
+  <a routerLink="/admin/solicitudes" class="btn btn-sm btn-outline-light mb-3">← Volver a solicitudes</a>
+
+  <div *ngIf="error" class="alert alert-danger border-0 small py-2" role="alert">{{ error }}</div>
+  <div *ngIf="aviso" class="alert alert-success border-0 small py-2" role="status">{{ aviso }}</div>
+
+  @if (solicitud) {
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Solicitud #{{ solicitud.id }}</h2>
+        <p class="text-secondary mb-0">Recibida el {{ solicitud.fecha_solicitud | date: 'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+      <span class="badge fs-6 {{ claseEstado(solicitud.estado) }}">{{ solicitud.estado_nombre }}</span>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card bg-dark text-white border-secondary h-100">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Lo que pidió el cliente</h3>
+            <dl class="row mb-0 small">
+              <dt class="col-5 text-secondary fw-normal">Pieza</dt><dd class="col-7 fw-bold">{{ solicitud.pieza_requerida }}</dd>
+              <dt class="col-5 text-secondary fw-normal">Vehículo / VIN</dt><dd class="col-7 font-monospace">{{ solicitud.vin_vehiculo || '—' }}</dd>
+              <dt class="col-5 text-secondary fw-normal">Urgencia</dt><dd class="col-7">{{ solicitud.nivel_urgencia }}</dd>
+              <dt class="col-5 text-secondary fw-normal">Cliente</dt><dd class="col-7">{{ solicitud.cliente_nombre }}</dd>
+              <dt class="col-5 text-secondary fw-normal">Correo</dt><dd class="col-7"><a href="mailto:{{ solicitud.cliente_email }}" class="link-light">{{ solicitud.cliente_email }}</a></dd>
+              <dt class="col-5 text-secondary fw-normal">Teléfono</dt><dd class="col-7">{{ solicitud.cliente_telefono || '—' }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <form [formGroup]="form" (ngSubmit)="guardar()" class="card bg-dark text-white border-secondary h-100">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Gestión</h3>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="solEstado">Estado</label>
+              <select id="solEstado" class="form-select bg-secondary text-white border-0" formControlName="estado">
+                @for (e of estados; track e.valor) {
+                  <option [value]="e.valor">{{ e.texto }}</option>
+                }
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="solValor">Valor cotizado ($)</label>
+              <input id="solValor" type="number" min="0" class="form-control bg-secondary text-white border-0" formControlName="valor_cotizado" placeholder="Ej: 45000">
+              <div *ngIf="form.value.valor_cotizado" class="small text-secondary mt-1">{{ form.value.valor_cotizado | currency }}</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="solComentario">Comentario interno</label>
+              <textarea id="solComentario" rows="4" class="form-control bg-secondary text-white border-0" formControlName="comentario_admin"
+                        placeholder="Ej: Proveedor confirma disponibilidad para el martes."></textarea>
+            </div>
+            <button type="submit" class="btn btn-brand w-100 fw-bold" [disabled]="form.invalid || form.pristine || guardando">
+              {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

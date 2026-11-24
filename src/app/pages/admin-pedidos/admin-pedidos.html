@@ -1,0 +1,83 @@
+<div class="text-white">
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Pedidos</h2>
+    <p class="text-secondary mb-0">{{ total }} pedidos encontrados.</p>
+  </div>
+
+  <div class="card bg-dark text-white border-secondary mb-3">
+    <div class="card-body row g-2 align-items-end">
+      <div class="col-lg-4">
+        <label class="form-label small" for="pBuscar">Buscar</label>
+        <input id="pBuscar" type="search" class="form-control bg-secondary text-white border-0"
+               placeholder="Correo o nombre del cliente..." [(ngModel)]="q" (ngModelChange)="buscar()">
+      </div>
+      <div class="col-sm-4 col-lg-3">
+        <label class="form-label small" for="pEstado">Estado</label>
+        <select id="pEstado" class="form-select bg-secondary text-white border-0" [(ngModel)]="estado" (ngModelChange)="irAPagina(1)">
+          <option value="">Todos los estados</option>
+          @for (e of estados; track e.valor) {
+            <option [value]="e.valor">{{ e.texto }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6 col-sm-4 col-lg-2">
+        <label class="form-label small" for="pDesde">Desde</label>
+        <input id="pDesde" type="date" class="form-control bg-secondary text-white border-0" [(ngModel)]="desde" (ngModelChange)="irAPagina(1)">
+      </div>
+      <div class="col-6 col-sm-4 col-lg-2">
+        <label class="form-label small" for="pHasta">Hasta</label>
+        <input id="pHasta" type="date" class="form-control bg-secondary text-white border-0" [(ngModel)]="hasta" (ngModelChange)="irAPagina(1)">
+      </div>
+      <div class="col-lg-1">
+        <button type="button" class="btn btn-outline-light w-100" (click)="limpiar()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger border-0 small py-2">{{ error }}</div>
+
+  <div class="card bg-dark text-white border-secondary shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle">
+        <thead>
+          <tr class="text-secondary small">
+            <th class="px-3">N°</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th class="text-end">Total</th>
+            <th>Estado</th>
+            <th class="px-3"><span class="visually-hidden">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody [class.opacity-50]="cargando">
+          @for (p of pedidos; track p.id) {
+            <tr>
+              <td class="px-3 fw-bold">#{{ p.id }}</td>
+              <td class="text-nowrap">{{ p.fecha_creacion | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <div>{{ p.nombre_cliente }} {{ p.apellido_cliente }}</div>
+                <div class="small text-secondary">{{ p.email_cliente }}</div>
+              </td>
+              <td class="text-end fw-bold text-success text-nowrap">{{ p.monto_total | currency }}</td>
+              <td><span class="badge {{ claseEstado(p.estado) }}">{{ p.estado_nombre }}</span></td>
+              <td class="px-3 text-end">
+                <a class="btn btn-sm btn-outline-light" [routerLink]="['/admin/pedidos', p.id]">Ver detalle</a>
+              </td>
+            </tr>
+          } @empty {
+            @if (!cargando) {
+              <tr><td colspan="6" class="text-center text-secondary py-5">No hay pedidos con estos filtros.</td></tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span class="small text-secondary">Página {{ pagina }} de {{ totalPaginas }}</span>
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-outline-light" [disabled]="pagina <= 1 || cargando" (click)="irAPagina(pagina - 1)">← Anterior</button>
+        <button type="button" class="btn btn-sm btn-outline-light" [disabled]="pagina >= totalPaginas || cargando" (click)="irAPagina(pagina + 1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>

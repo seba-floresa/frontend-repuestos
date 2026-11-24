@@ -31,14 +31,18 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'resumen', pathMatch: 'full' },
       { path: 'resumen', loadComponent: () => import('./pages/admin-resumen/admin-resumen').then(m => m.AdminResumenComponent) },
-      { path: 'pedidos', loadComponent: () => import('./pages/admin-proximamente/admin-proximamente').then(m => m.AdminProximamenteComponent), data: { titulo: 'Pedidos' } },
+      { path: 'pedidos', loadComponent: () => import('./pages/admin-pedidos/admin-pedidos').then(m => m.AdminPedidosComponent) },
+      { path: 'pedidos/:id', loadComponent: () => import('./pages/admin-pedido-detalle/admin-pedido-detalle').then(m => m.AdminPedidoDetalleComponent) },
+      { path: 'clientes', loadComponent: () => import('./pages/admin-clientes/admin-clientes').then(m => m.AdminClientesComponent) },
+      { path: 'clientes/detalle', loadComponent: () => import('./pages/admin-cliente-detalle/admin-cliente-detalle').then(m => m.AdminClienteDetalleComponent) },
       { path: 'inventario', loadComponent: () => import('./pages/admin/admin').then(m => m.AdminComponent) },
       { path: 'inventario/carga-masiva', loadComponent: () => import('./pages/admin-carga-masiva/admin-carga-masiva').then(m => m.AdminCargaMasivaComponent) },
       { path: 'carga-masiva', redirectTo: 'inventario/carga-masiva' }, // enlace antiguo
       { path: 'catalogo', loadComponent: () => import('./pages/admin-catalogo/admin-catalogo').then(m => m.AdminCatalogoComponent) },
       { path: 'categorias', loadComponent: () => import('./pages/admin-categorias/admin-categorias').then(m => m.AdminCategoriasComponent) },
       { path: 'vehiculos', loadComponent: () => import('./pages/admin-vehiculos/admin-vehiculos').then(m => m.AdminVehiculosComponent) },
-      { path: 'solicitudes', loadComponent: () => import('./pages/admin-proximamente/admin-proximamente').then(m => m.AdminProximamenteComponent), data: { titulo: 'Solicitudes especiales' } },
+      { path: 'solicitudes', loadComponent: () => import('./pages/admin-solicitudes/admin-solicitudes').then(m => m.AdminSolicitudesComponent) },
+      { path: 'solicitudes/:id', loadComponent: () => import('./pages/admin-solicitud-detalle/admin-solicitud-detalle').then(m => m.AdminSolicitudDetalleComponent) },
     ]
   },
   { path: 'pago-resultado', component: PagoResultado },

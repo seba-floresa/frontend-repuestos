@@ -1,0 +1,57 @@
+<div class="text-white">
+  <a routerLink="/admin/clientes" class="btn btn-sm btn-outline-light mb-3">← Volver a clientes</a>
+
+  <div *ngIf="error" class="alert alert-danger border-0 small py-2" role="alert">{{ error }}</div>
+
+  @if (cliente) {
+    <div class="mb-4">
+      <h2 class="fw-bold mb-1">{{ cliente.nombre }} {{ cliente.apellido }}</h2>
+      <p class="text-secondary mb-0">
+        {{ cliente.email }} · RUT {{ cliente.rut || '—' }} · {{ cliente.telefono || 'Sin teléfono' }}
+      </p>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-sm-4">
+        <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
+          <div class="small text-secondary">Total gastado</div>
+          <div class="fs-4 fw-bold text-success">{{ cliente.total_gastado | currency }}</div>
+        </div></div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
+          <div class="small text-secondary">Pedidos pagados</div>
+          <div class="fs-4 fw-bold">{{ cliente.pedidos_pagados }} <span class="fs-6 text-secondary fw-normal">de {{ cliente.pedidos.length }}</span></div>
+        </div></div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
+          <div class="small text-secondary">Última compra</div>
+          <div class="fs-4 fw-bold">{{ cliente.ultima_compra ? (cliente.ultima_compra | date: 'dd/MM/yyyy') : '—' }}</div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="card bg-dark text-white border-secondary">
+      <div class="card-body">
+        <h3 class="h6 fw-bold mb-3">Historial de pedidos</h3>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover table-sm mb-0 align-middle">
+            <thead><tr class="small text-secondary"><th>N°</th><th>Fecha</th><th class="text-end">Total</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
+            <tbody>
+              @for (p of cliente.pedidos; track p.id) {
+                <tr>
+                  <td class="fw-bold">#{{ p.id }}</td>
+                  <td>{{ p.fecha_creacion | date: 'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="text-end text-nowrap">{{ p.monto_total | currency }}</td>
+                  <td><span class="badge {{ claseEstado(p.estado) }}">{{ p.estado_nombre }}</span></td>
+                  <td class="text-end"><a class="btn btn-sm btn-outline-light" [routerLink]="['/admin/pedidos', p.id]">Ver pedido</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>

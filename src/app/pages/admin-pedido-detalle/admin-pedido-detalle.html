@@ -1,0 +1,125 @@
+<div class="text-white">
+  <a routerLink="/admin/pedidos" class="btn btn-sm btn-outline-light mb-3">← Volver a pedidos</a>
+
+  <div *ngIf="error" class="alert alert-danger border-0 small py-2" role="alert">{{ error }}</div>
+  <div *ngIf="aviso" class="alert alert-success border-0 small py-2" role="status">{{ aviso }}</div>
+
+  @if (pedido) {
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Pedido #{{ pedido.id }}</h2>
+        <p class="text-secondary mb-0">{{ pedido.fecha_creacion | date: 'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+      <span class="badge fs-6 {{ claseEstado(pedido.estado) }}">{{ pedido.estado_nombre }}</span>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <!-- Productos y totales -->
+        <div class="card bg-dark text-white border-secondary mb-3">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Productos</h3>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm mb-0 align-middle">
+                <thead><tr class="small text-secondary"><th>Repuesto</th><th class="text-end">Cantidad</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th></tr></thead>
+                <tbody>
+                  @for (d of pedido.productos; track d.id) {
+                    <tr>
+                      <td><div>{{ d.nombre }}</div><div class="small font-monospace text-warning">{{ d.sku }}</div></td>
+                      <td class="text-end">{{ d.cantidad }}</td>
+                      <td class="text-end text-nowrap">{{ d.precio_historico | currency }}</td>
+                      <td class="text-end text-nowrap">{{ d.subtotal | currency }}</td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr><td colspan="3" class="text-end text-secondary">Subtotal</td><td class="text-end">{{ pedido.subtotal | currency }}</td></tr>
+                  <tr><td colspan="3" class="text-end text-secondary">Envío</td><td class="text-end">{{ pedido.costo_envio | currency }}</td></tr>
+                  <tr><td colspan="3" class="text-end fw-bold">Total</td><td class="text-end fw-bold text-success">{{ pedido.monto_total | currency }}</td></tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagos (Webpay) -->
+        <div class="card bg-dark text-white border-secondary">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Pago</h3>
+            @for (pago of pedido.pagos; track pago.id) {
+              <div class="d-flex flex-wrap justify-content-between gap-2 border-bottom border-secondary py-2">
+                <div>
+                  <span class="badge" [class.bg-success]="pago.estado_pago === 'APROBADO'" [class.bg-danger]="pago.estado_pago === 'RECHAZADO' || pago.estado_pago === 'ANULADO'"
+                        [class.bg-secondary]="pago.estado_pago === 'INICIADO'">{{ pago.estado_pago }}</span>
+                  <span class="ms-2">{{ pago.metodo_pago || 'Webpay' }}</span>
+                  <span *ngIf="pago.codigo_autorizacion" class="ms-2 small text-secondary">Autorización {{ pago.codigo_autorizacion }}</span>
+                </div>
+                <div class="text-nowrap">
+                  {{ pago.monto_pagado | currency }}
+                  <span class="small text-secondary ms-2">{{ pago.fecha_transaccion | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              </div>
+            } @empty {
+              <p class="text-secondary mb-0">Sin transacciones de pago registradas.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <!-- Avanzar estado: solo el siguiente paso permitido -->
+        <div class="card bg-dark text-white border-secondary mb-3">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Estado del pedido</h3>
+            @if (pedido.siguiente_estado) {
+              @if (pideDespacho) {
+                <div class="mb-2">
+                  <label class="form-label small fw-semibold" for="dCourier">Empresa de courier *</label>
+                  <input id="dCourier" type="text" maxlength="50" class="form-control bg-secondary text-white border-0" [(ngModel)]="courier" placeholder="Ej: Starken">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold" for="dSeguimiento">Código de seguimiento *</label>
+                  <input id="dSeguimiento" type="text" maxlength="80" class="form-control bg-secondary text-white border-0" [(ngModel)]="seguimiento" placeholder="Ej: 123456789">
+                </div>
+              }
+              @if (pedido.estado === 'REVISAR_STOCK') {
+                <p class="small text-warning">Este pedido se pagó sin stock suficiente. Avánzalo cuando tengas los repuestos.</p>
+              }
+              <button type="button" class="btn btn-brand w-100 fw-bold" [disabled]="guardando" (click)="avanzar()">
+                {{ guardando ? 'Guardando...' : 'Pasar a "' + textoEstado(pedido.siguiente_estado) + '"' }}
+              </button>
+            } @else {
+              <p class="text-secondary small mb-0">
+                {{ pedido.estado === 'ENTREGADO' ? 'El pedido ya fue entregado.' : 'Este pedido no se puede avanzar (no está pagado).' }}
+              </p>
+            }
+            @if (pedido.empresa_courier) {
+              <hr class="border-secondary">
+              <div class="small"><span class="text-secondary">Courier:</span> {{ pedido.empresa_courier }}</div>
+              <div class="small"><span class="text-secondary">Seguimiento:</span> <span class="font-monospace">{{ pedido.codigo_seguimiento }}</span></div>
+            }
+          </div>
+        </div>
+
+        <!-- Cliente y despacho -->
+        <div class="card bg-dark text-white border-secondary">
+          <div class="card-body small">
+            <h3 class="h6 fw-bold mb-3">Cliente</h3>
+            <div class="fw-bold">{{ pedido.nombre_cliente }} {{ pedido.apellido_cliente }}</div>
+            <div>RUT {{ pedido.rut_cliente || '—' }}</div>
+            <div>
+              <a [routerLink]="['/admin/clientes/detalle']" [queryParams]="{ email: pedido.email_cliente }" class="link-light">{{ pedido.email_cliente }}</a>
+            </div>
+            <div>{{ pedido.telefono_cliente || 'Sin teléfono' }}</div>
+            <div *ngIf="pedido.patente_vin" class="mt-1"><span class="text-secondary">Patente/VIN:</span> {{ pedido.patente_vin }}</div>
+
+            <h3 class="h6 fw-bold mt-4 mb-2">Dirección de despacho</h3>
+            <div>{{ pedido.direccion_calle }}</div>
+            <div *ngIf="pedido.direccion_complemento">{{ pedido.direccion_complemento }}</div>
+            <div *ngIf="pedido.instrucciones_entrega" class="text-secondary mt-1">Instrucciones: {{ pedido.instrucciones_entrega }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

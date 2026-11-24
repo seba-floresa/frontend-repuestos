@@ -59,6 +59,47 @@ export class AdminCrudService {
     return this.http.get(`${this.apiUrl}admin/resumen/`, { params: { periodo }, withCredentials: true });
   }
 
+  // Pedidos (solo lectura + avance de estado validado en el servidor)
+  listarPedidos(filtros: Record<string, string | number>): Observable<any> {
+    return this.http.get(`${this.apiUrl}pedidos/`, { params: filtros, withCredentials: true });
+  }
+
+  getPedido(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}pedidos/${id}/`, { withCredentials: true });
+  }
+
+  avanzarPedido(id: number, data: { estado: string; empresa_courier?: string; codigo_seguimiento?: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}pedidos/${id}/avanzar-estado/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  // Solicitudes especiales (HU-02)
+  listarSolicitudes(filtros: Record<string, string | number>): Observable<any> {
+    return this.http.get(`${this.apiUrl}admin/solicitudes/`, { params: filtros, withCredentials: true });
+  }
+
+  getSolicitud(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}admin/solicitudes/${id}/`, { withCredentials: true });
+  }
+
+  actualizarSolicitud(id: number, data: { estado: string; valor_cotizado: number | null; comentario_admin: string }): Observable<any> {
+    return this.http.patch(`${this.apiUrl}admin/solicitudes/${id}/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  // Clientes (derivados de los pedidos)
+  listarClientes(filtros: Record<string, string | number>): Observable<any> {
+    return this.http.get(`${this.apiUrl}admin/clientes/`, { params: filtros, withCredentials: true });
+  }
+
+  getCliente(email: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}admin/clientes/detalle/`, { params: { email }, withCredentials: true });
+  }
+
   crearVehiculo(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}vehiculos/`, data, {
       headers: this.getAuthHeaders(),
