@@ -34,6 +34,11 @@ export class App implements OnInit {
     public carrito: CarritoService
   ) {}
 
+  /** En /admin/* se oculta lo que es solo de la tienda (ej: "Mi Vehículo") */
+  get enAdmin(): boolean {
+    return this.router.url.startsWith('/admin');
+  }
+
   /** El header lee el vehículo desde el servicio compartido */
   get vehiculoEncontrado() {
     return this.veh.actual;

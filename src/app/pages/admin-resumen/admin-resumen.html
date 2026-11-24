@@ -19,19 +19,32 @@
   @if (datos) {
     <div [class.opacity-50]="cargando">
 
+      <!-- Pedidos pagados que no se pudieron descontar del stock (no suman a las ventas) -->
+      @if (datos.pedidos_por_revisar) {
+        <div class="alert alert-warning border-0 d-flex flex-wrap justify-content-between align-items-center gap-2" role="status">
+          <span>
+            <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>
+            <strong>Pedidos pagados por revisar (sin stock): {{ datos.pedidos_por_revisar }}</strong>.
+            No se suman a las ventas hasta resolverlos.
+          </span>
+          <a routerLink="/admin/pedidos" [queryParams]="{ estado: 'REVISAR_STOCK' }" class="alert-link">Ver pedidos</a>
+        </div>
+      }
+
       <!-- Indicadores -->
       <div class="row g-3 mb-4">
         <div class="col-6 col-xl-3">
-          <div class="card bg-dark border-secondary h-100"><div class="card-body">
+          <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
             <div class="small text-secondary">Ventas (pedidos pagados)</div>
             <div class="indicador fw-bold text-success">{{ datos.ventas_totales | currency }}</div>
             <div class="small text-secondary">{{ datos.pedidos_pagados }} pedidos pagados</div>
           </div></div>
         </div>
         <div class="col-6 col-xl-3">
-          <div class="card bg-dark border-secondary h-100"><div class="card-body">
+          <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
             <div class="small text-secondary">Ticket promedio</div>
-            <div class="indicador fw-bold">{{ datos.ticket_promedio | currency }}</div>
+            <div class="indicador fw-bold">{{ datos.pedidos_pagados ? (datos.ticket_promedio | currency) : '—' }}</div>
+            <div class="small text-secondary">Por pedido pagado</div>
           </div></div>
         </div>
         <div class="col-6 col-xl-3">
@@ -56,7 +69,7 @@
       <div class="row g-3 mb-4">
         <!-- Gráfico de ventas por día (barras CSS, sin librerías) -->
         <div class="col-xl-8">
-          <div class="card bg-dark border-secondary h-100"><div class="card-body">
+          <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
             <h3 class="h6 fw-bold mb-3">Ventas por día</h3>
             <div class="grafico" role="img"
                  [attr.aria-label]="'Ventas por día: ' + datos.ventas_por_dia.length + ' días, total ' + (datos.ventas_totales | currency)">
@@ -79,7 +92,7 @@
 
         <!-- Pedidos por estado -->
         <div class="col-xl-4">
-          <div class="card bg-dark border-secondary h-100"><div class="card-body">
+          <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
             <h3 class="h6 fw-bold mb-3">Pedidos por estado <span class="text-secondary fw-normal">({{ totalPedidos }})</span></h3>
             <ul class="list-group list-group-flush">
               @for (e of estados; track e.estado) {
@@ -98,7 +111,7 @@
       <div class="row g-3">
         <!-- Más vendidos -->
         <div class="col-lg-6">
-          <div class="card bg-dark border-secondary h-100"><div class="card-body">
+          <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
             <h3 class="h6 fw-bold mb-3">Los 5 más vendidos</h3>
             <table class="table table-dark table-sm mb-0 align-middle">
               <thead><tr class="small text-secondary"><th>Repuesto</th><th class="text-end">Unidades</th><th class="text-end">Total</th></tr></thead>
@@ -119,7 +132,7 @@
 
         <!-- Stock crítico y agotados -->
         <div class="col-lg-6">
-          <div class="card bg-dark border-secondary h-100"><div class="card-body">
+          <div class="card bg-dark text-white border-secondary h-100"><div class="card-body">
             <h3 class="h6 fw-bold mb-3">Reponer stock</h3>
             <table class="table table-dark table-sm mb-0 align-middle">
               <thead><tr class="small text-secondary"><th>Repuesto</th><th class="text-end">Stock</th></tr></thead>
