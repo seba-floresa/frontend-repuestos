@@ -1,0 +1,32 @@
+.admin-menu {
+  background-color: #1a1a1a;
+  border-right: 1px solid #333;
+}
+.admin-menu .nav-link.activo {
+  background-color: #3F7856;
+  color: #fff !important;
+}
+.admin-contenido {
+  padding: 1.5rem;
+  min-width: 0;
+}
+
+/* Escritorio: menú fijo a la izquierda */
+@media (min-width: 992px) {
+  .admin-shell { display: flex; align-items: flex-start; }
+  .admin-menu {
+    position: sticky;
+    top: 0;
+    width: 220px;
+    flex-shrink: 0;
+    min-height: 100vh;
+  }
+  .admin-contenido { flex: 1; }
+}
+
+/* Móvil: menú colapsable */
+@media (max-width: 991.98px) {
+  .admin-menu { display: none; border-right: 0; border-bottom: 1px solid #333; padding-bottom: .5rem; }
+  .admin-menu.abierto { display: block; }
+  .admin-contenido { padding: 1rem; }
+}

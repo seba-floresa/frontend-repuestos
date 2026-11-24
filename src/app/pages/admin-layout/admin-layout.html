@@ -1,0 +1,25 @@
+<div class="admin-shell">
+  <!-- En móvil el menú se abre con este botón; en escritorio queda fijo a la izquierda -->
+  <button type="button" class="btn btn-sm btn-outline-light d-lg-none m-3"
+          aria-controls="menuAdmin" [attr.aria-expanded]="menuAbierto" (click)="menuAbierto = !menuAbierto">
+    <i class="bi bi-list"></i> Menú de administración
+  </button>
+
+  <nav id="menuAdmin" class="admin-menu" [class.abierto]="menuAbierto" aria-label="Secciones del panel">
+    <div class="px-3 pt-3 pb-2 small text-uppercase text-secondary fw-semibold">Panel de la tienda</div>
+    <ul class="nav flex-column gap-1 px-2">
+      @for (s of secciones; track s.ruta) {
+        <li class="nav-item">
+          <a class="nav-link text-light rounded" [routerLink]="s.ruta" routerLinkActive="activo"
+             (click)="menuAbierto = false">
+            <i class="bi {{ s.icono }} me-2" aria-hidden="true"></i>{{ s.texto }}
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <main class="admin-contenido">
+    <router-outlet></router-outlet>
+  </main>
+</div>

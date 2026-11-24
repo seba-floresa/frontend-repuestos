@@ -1,0 +1,88 @@
+<div class="text-white">
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Vehículos</h2>
+    <p class="text-secondary mb-0">Marcas y modelos para la compatibilidad de los repuestos.</p>
+  </div>
+
+  <div *ngIf="mensaje" class="alert border-0 small py-2" role="status"
+       [class.alert-success]="mensaje.tipo === 'ok'" [class.alert-danger]="mensaje.tipo === 'error'">
+    {{ mensaje.texto }}
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="card bg-dark text-white border-secondary shadow-sm">
+        <div class="card-header border-secondary fw-bold d-flex justify-content-between align-items-center">
+          <span>{{ editandoId ? 'Editar vehículo' : 'Nuevo vehículo' }}</span>
+          <button *ngIf="editandoId" type="button" class="btn btn-sm btn-outline-secondary py-0" (click)="cancelar()">Cancelar</button>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="vMarca">Marca *</label>
+            <input id="vMarca" type="text" class="form-control bg-secondary text-white border-0" formControlName="marca" placeholder="Ej: Toyota">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="vModelo">Modelo *</label>
+            <input id="vModelo" type="text" class="form-control bg-secondary text-white border-0" formControlName="modelo" placeholder="Ej: Yaris">
+          </div>
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label small fw-semibold" for="vDesde">Año inicio *</label>
+              <input id="vDesde" type="number" class="form-control bg-secondary text-white border-0" formControlName="anio_inicio" placeholder="Ej: 2010">
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label small fw-semibold" for="vHasta">Año fin</label>
+              <input id="vHasta" type="number" class="form-control bg-secondary text-white border-0" formControlName="anio_fin" placeholder="Vacío = vigente">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="vMotor">Motorización</label>
+            <input id="vMotor" type="text" class="form-control bg-secondary text-white border-0" formControlName="motorizacion" placeholder="Ej: 1.5">
+          </div>
+          <button type="submit" class="btn btn-brand w-100 fw-bold" [disabled]="form.invalid || guardando">
+            {{ guardando ? 'Guardando...' : (editandoId ? 'Guardar cambios' : 'Crear vehículo') }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card bg-dark text-white border-secondary shadow-sm">
+        <div class="card-header border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <span class="fw-bold">{{ vehiculosFiltrados.length }} vehículos</span>
+          <input type="search" class="form-control form-control-sm bg-secondary text-white border-0" style="max-width: 260px;"
+                 aria-label="Buscar vehículo" placeholder="Buscar marca o modelo..." [(ngModel)]="filtro" [ngModelOptions]="{ standalone: true }">
+        </div>
+        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+          <table class="table table-dark table-hover mb-0 align-middle">
+            <thead class="position-sticky top-0">
+              <tr class="text-secondary small">
+                <th class="px-3">Marca</th>
+                <th>Modelo</th>
+                <th>Años</th>
+                <th>Motor</th>
+                <th class="text-end px-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let v of vehiculosFiltrados" [class.table-active]="v.id === editandoId">
+                <td class="px-3">{{ v.marca }}</td>
+                <td>{{ v.modelo }}</td>
+                <td>{{ v.anio_inicio }}–{{ v.anio_fin || 'hoy' }}</td>
+                <td>{{ v.motorizacion || '—' }}</td>
+                <td class="text-end px-3">
+                  <button type="button" class="btn btn-sm btn-outline-light" (click)="editar(v)">
+                    <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="vehiculosFiltrados.length === 0">
+                <td colspan="5" class="text-center text-secondary py-4">No hay vehículos.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,2 @@
+.carga-masiva { min-width: 260px; transition: border-color .2s; }
+.carga-masiva:hover { border-color: #3F7856 !important; }

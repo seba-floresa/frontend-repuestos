@@ -1,0 +1,122 @@
+<div class="text-white">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Catálogo</h2>
+      <p class="text-secondary mb-0">{{ total }} repuestos encontrados.</p>
+    </div>
+    <a routerLink="/admin/inventario" class="btn btn-brand"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Ingresar repuesto</a>
+  </div>
+
+  <div *ngIf="mensaje" class="alert border-0 small py-2 d-flex justify-content-between align-items-center"
+       [class.alert-success]="mensaje.tipo === 'ok'" [class.alert-danger]="mensaje.tipo === 'error'" role="status">
+    <span>{{ mensaje.texto }}</span>
+    <button type="button" class="btn-close" aria-label="Cerrar aviso" (click)="mensaje = null"></button>
+  </div>
+
+  <!-- Búsqueda y filtros (se resuelven en el servidor) -->
+  <div class="card bg-dark border-secondary mb-3">
+    <div class="card-body row g-2 align-items-center">
+      <div class="col-lg-5">
+        <input type="search" class="form-control bg-secondary text-white border-0" aria-label="Buscar repuesto"
+               placeholder="Buscar por nombre, SKU u OEM..." [(ngModel)]="q" (ngModelChange)="buscar()">
+      </div>
+      <div class="col-sm-4 col-lg-3">
+        <select class="form-select bg-secondary text-white border-0" aria-label="Filtrar por categoría"
+                [(ngModel)]="categoria" (ngModelChange)="irAPagina(1)">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let c of categorias" [value]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-sm-4 col-lg-2">
+        <select class="form-select bg-secondary text-white border-0" aria-label="Filtrar por condición"
+                [(ngModel)]="condicion" (ngModelChange)="irAPagina(1)">
+          <option value="">Toda condición</option>
+          <option value="NUEVO">Nuevo</option>
+          <option value="USADO">Usado</option>
+          <option value="REACONDICIONADO">Reacondicionado</option>
+        </select>
+      </div>
+      <div class="col-sm-4 col-lg-2">
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input" type="checkbox" role="switch" id="chkCritico"
+                 [(ngModel)]="stockCritico" (ngModelChange)="irAPagina(1)">
+          <label class="form-check-label small" for="chkCritico">Stock crítico (≤ 5)</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-dark text-white border-secondary shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle">
+        <thead>
+          <tr class="text-secondary small">
+            <th class="px-3">Imagen</th>
+            <th>SKU / OEM</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th class="text-end">Precio</th>
+            <th class="text-center">Stock</th>
+            <th class="text-center px-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody [class.opacity-50]="cargando">
+          <tr *ngFor="let rep of repuestos">
+            <td class="px-3" style="width: 70px;">
+              <img [src]="rep.imagen || 'assets/placeholder-auto.png'" alt="" class="rounded border border-secondary" style="width: 48px; height: 48px; object-fit: cover;">
+            </td>
+            <td class="font-monospace small">
+              <div class="text-warning">{{ rep.sku }}</div>
+              <div class="text-info">{{ rep.codigo_oem || '—' }}</div>
+            </td>
+            <td>
+              <div class="fw-bold">
+                {{ rep.nombre }}
+                <span *ngIf="rep.condicion !== 'NUEVO'" class="badge bg-warning text-dark ms-1">{{ rep.condicion === 'REACONDICIONADO' ? 'Reacond.' : 'Usado' }}</span>
+                <span *ngIf="!rep.activo" class="badge bg-danger ms-1">Oculto</span>
+              </div>
+              <div class="text-secondary small">{{ rep.marca_fabricante }}</div>
+            </td>
+            <td>
+              <div class="small">{{ rep.categoria_nombre }}</div>
+              <div class="text-secondary small">{{ rep.subcategoria_nombre }}</div>
+            </td>
+            <td class="text-end fw-bold text-success text-nowrap">{{ rep.precio | currency }}</td>
+            <td class="text-center">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" [attr.aria-label]="'Restar stock a ' + rep.nombre" (click)="actualizarStock(rep, -1)">-</button>
+                <span class="fw-bold" style="min-width: 25px;" [class.text-danger]="rep.stock === 0" [class.text-warning]="rep.stock > 0 && rep.stock <= 5">{{ rep.stock }}</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" [attr.aria-label]="'Sumar stock a ' + rep.nombre" (click)="actualizarStock(rep, 1)">+</button>
+              </div>
+            </td>
+            <td class="text-center px-3 text-nowrap">
+              <a class="btn btn-sm btn-outline-light me-1" [routerLink]="['/admin/inventario']" [queryParams]="{ editar: rep.id }" title="Editar">
+                <i class="bi bi-pencil" aria-hidden="true"></i><span class="visually-hidden">Editar {{ rep.nombre }}</span>
+              </a>
+              <button type="button" class="btn btn-sm btn-outline-warning me-1" (click)="cambiarActivo(rep)" [title]="rep.activo ? 'Desactivar (ocultar de la tienda)' : 'Activar'">
+                <i class="bi" [class.bi-eye-slash]="rep.activo" [class.bi-eye]="!rep.activo" aria-hidden="true"></i>
+                <span class="visually-hidden">{{ rep.activo ? 'Desactivar' : 'Activar' }} {{ rep.nombre }}</span>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(rep)" title="Eliminar">
+                <i class="bi bi-trash" aria-hidden="true"></i><span class="visually-hidden">Eliminar {{ rep.nombre }}</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!cargando && repuestos.length === 0">
+            <td colspan="7" class="text-center text-secondary py-5">No se encontraron repuestos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación en el servidor -->
+    <div class="card-footer border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span class="small text-secondary">Página {{ pagina }} de {{ totalPaginas }}</span>
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-outline-light" [disabled]="pagina <= 1 || cargando" (click)="irAPagina(pagina - 1)">← Anterior</button>
+        <button type="button" class="btn btn-sm btn-outline-light" [disabled]="pagina >= totalPaginas || cargando" (click)="irAPagina(pagina + 1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>

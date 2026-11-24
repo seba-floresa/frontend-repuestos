@@ -42,6 +42,37 @@ export class AdminCrudService {
     return this.http.get(`${this.apiUrl}repuestos/`);
   }
 
+  // Listado paginado del panel: { count, results }. Filtros: q, categoria, condicion, stock_critico
+  listarRepuestos(filtros: Record<string, string | number>): Observable<any> {
+    return this.http.get(`${this.apiUrl}repuestos/`, { params: filtros, withCredentials: true });
+  }
+
+  cambiarActivo(id: number, activo: boolean): Observable<any> {
+    return this.http.patch(`${this.apiUrl}repuestos/${id}/`, { activo }, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  // Indicadores del panel (solo administradores)
+  getResumen(periodo: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}admin/resumen/`, { params: { periodo }, withCredentials: true });
+  }
+
+  crearVehiculo(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}vehiculos/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
+  actualizarVehiculo(id: number, data: any): Observable<any> {
+    return this.http.patch(`${this.apiUrl}vehiculos/${id}/`, data, {
+      headers: this.getAuthHeaders(),
+      withCredentials: true
+    });
+  }
+
   crearRepuesto(formData: FormData): Observable<any> {
     return this.http.post(`${this.apiUrl}repuestos/`, formData, {
       headers: this.getAuthHeaders(),

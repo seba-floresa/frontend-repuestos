@@ -1,15 +1,8 @@
-<div class="container-fluid py-4 px-4 text-white">
+<div class="text-white">
 
   <div class="mb-4">
-    <h2 class="fw-bold mb-1">Panel de Administración</h2>
+    <h2 class="fw-bold mb-1">Categorías</h2>
     <p class="text-secondary mb-3">Categorías y subcategorías del catálogo.</p>
-
-    <!-- Navegación entre secciones del panel -->
-    <ul class="nav nav-pills gap-2">
-      <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin">Inventario</a></li>
-      <li class="nav-item"><a class="nav-link bg-brand text-white" routerLink="/admin/categorias">Categorías y subcategorías</a></li>
-      <li class="nav-item"><a class="nav-link text-light border border-secondary" routerLink="/admin/carga-masiva">Carga masiva</a></li>
-    </ul>
   </div>
 
   <div *ngIf="mensaje" class="alert border-0 small py-2" [class.alert-success]="mensaje.tipo === 'ok'" [class.alert-danger]="mensaje.tipo === 'error'">

@@ -1,0 +1,30 @@
+.grafico {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 200px;
+  border-bottom: 1px solid #555;
+}
+.barra-col {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+.barra {
+  width: 100%;
+  background-color: #3F7856;
+  border-radius: 3px 3px 0 0;
+}
+.barra-col:hover .barra { background-color: #5fb07f; }
+.etiquetas { display: flex; gap: 3px; }
+.etiquetas span {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: .7rem;
+  color: #adb5bd;
+  overflow: hidden;
+}
+.indicador { font-size: 1.6rem; }

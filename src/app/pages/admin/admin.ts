@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminCrudService } from '../../services/admin-crud';
-import { RouterLink } from '@angular/router'; 
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
@@ -12,8 +13,6 @@ import { RouterLink } from '@angular/router';
   styleUrl: './admin.css'
 })
 export class AdminComponent implements OnInit {
-  repuestos: any[] = [];
-  repuestosFiltrados: any[] = [];
   categorias: any[] = [];
   subcategorias: any[] = [];
   subcategoriasFiltradas: any[] = [];
@@ -21,15 +20,17 @@ export class AdminComponent implements OnInit {
 
   repuestoForm!: FormGroup;
   archivoImagen: File | null = null;
-  terminoBusqueda: string = '';
   filtroVehiculo: string = '';
   editandoId: number | null = null;
   mensajeError: string = '';
+  mensajeExito = '';
   guardando = false;
 
   constructor(
     private fb: FormBuilder,
-    private adminCrudService: AdminCrudService
+    private adminCrudService: AdminCrudService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -68,48 +69,26 @@ export class AdminComponent implements OnInit {
   }
 
   cargarDatosIniciales(): void {
-    this.adminCrudService.getCategorias().subscribe({
-      next: (data: any) => (this.categorias = data),
-      error: (err: any) => console.error('Error al cargar categorías:', err)
-    });
-
-    this.adminCrudService.getSubcategorias().subscribe({
-      next: (data: any) => (this.subcategorias = data),
-      error: (err: any) => console.error('Error al cargar subcategorías:', err)
-    });
-
-    this.adminCrudService.getVehiculos().subscribe({
-      next: (data: any) => (this.vehiculosDisponibles = data),
-      error: (err: any) => console.error('Error al cargar vehículos:', err)
-    });
-
-    this.cargarRepuestos();
-  }
-
-  cargarRepuestos(): void {
-    this.adminCrudService.getRepuestos().subscribe({
-      next: (data: any) => {
-        this.repuestos = data;
-        this.filtrarRepuestos();
+    forkJoin({
+      categorias: this.adminCrudService.getCategorias(),
+      subcategorias: this.adminCrudService.getSubcategorias(),
+      vehiculos: this.adminCrudService.getVehiculos()
+    }).subscribe({
+      next: (d: any) => {
+        this.categorias = d.categorias;
+        this.subcategorias = d.subcategorias;
+        this.vehiculosDisponibles = d.vehiculos;
+        // Edición desde el Catálogo: /admin/inventario?editar=<id>
+        const id = Number(this.route.snapshot.queryParamMap.get('editar'));
+        if (id) {
+          this.adminCrudService.getRepuesto(id).subscribe({
+            next: (rep: any) => this.cargarParaEditar(rep),
+            error: () => (this.mensajeError = 'No se encontró el repuesto a editar.')
+          });
+        }
       },
-      error: (err: any) => console.error('Error al cargar repuestos:', err)
+      error: () => (this.mensajeError = 'No se pudieron cargar categorías y vehículos. Revisa la conexión con el servidor.')
     });
-  }
-
-  filtrarRepuestos(): void {
-    const busqueda = this.terminoBusqueda.toLowerCase().trim();
-    if (!busqueda) {
-      this.repuestosFiltrados = [...this.repuestos];
-      return;
-    }
-
-    this.repuestosFiltrados = this.repuestos.filter(
-      (rep) =>
-        (rep.nombre || '').toLowerCase().includes(busqueda) ||
-        (rep.sku || '').toLowerCase().includes(busqueda) ||
-        (rep.codigo_oem || '').toLowerCase().includes(busqueda) ||
-        (rep.marca_fabricante || '').toLowerCase().includes(busqueda)
-    );
   }
 
   // =========================================================
@@ -181,6 +160,7 @@ export class AdminComponent implements OnInit {
     if (this.repuestoForm.invalid || this.guardando) return;
 
     this.mensajeError = '';
+    this.mensajeExito = '';
     this.guardando = true;
 
     const formData = new FormData();
@@ -203,10 +183,14 @@ export class AdminComponent implements OnInit {
       : this.adminCrudService.crearRepuesto(formData);
 
     peticion$.subscribe({
-      next: () => {
+      next: (rep: any) => {
         this.guardando = false;
-        this.cargarRepuestos();
+        if (this.editandoId) {
+          this.router.navigate(['/admin/catalogo']);
+          return;
+        }
         this.cancelarEdicion();
+        this.mensajeExito = `Repuesto ${rep.sku} registrado: ${rep.nombre}.`;
       },
       error: (err: any) => {
         this.guardando = false;
@@ -260,11 +244,12 @@ export class AdminComponent implements OnInit {
       stock: repuesto.stock,
       vehiculos: vehiculosIds
     });
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancelarEdicion(): void {
+    if (this.editandoId) {
+      this.router.navigate(['/admin/inventario']);  // quita ?editar= de la URL
+    }
     this.editandoId = null;
     this.mensajeError = '';
     this.archivoImagen = null;
@@ -282,26 +267,5 @@ export class AdminComponent implements OnInit {
       peso_kg: 1.0,
       vehiculos: []
     });
-  }
-
-  actualizarStockRapido(repuesto: any, variacion: number): void {
-    const nuevoStock = repuesto.stock + variacion;
-    if (nuevoStock >= 0) {
-      this.adminCrudService.actualizarStock(repuesto.id, nuevoStock).subscribe({
-        next: () => {
-          repuesto.stock = nuevoStock;
-        },
-        error: (err: any) => console.error('Error al actualizar stock:', err)
-      });
-    }
-  }
-
-  borrarRepuesto(id: number): void {
-    if (confirm('¿Estás seguro de eliminar este repuesto del inventario?')) {
-      this.adminCrudService.eliminarRepuesto(id).subscribe({
-        next: () => this.cargarRepuestos(),
-        error: (err: any) => console.error('Error al eliminar repuesto:', err)
-      });
-    }
   }
 }
