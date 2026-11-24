@@ -1,14 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminCrudService } from '../../services/admin-crud';
 import { CatalogoFiltroService } from '../../services/catalogo-filtro';
 import { CarritoService } from '../../services/carrito.service';
+import { VehiculoSeleccionService } from '../../services/vehiculo-seleccion.service';
 
 @Component({
   selector: 'app-repuesto-detalle',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './repuesto-detalle.html',
 })
 export class RepuestoDetalle implements OnInit {
@@ -17,13 +19,16 @@ export class RepuestoDetalle implements OnInit {
   noEncontrado = false;
   cantidad = 1;
   fotoActiva = 0;
+  pestana: 'descripcion' | 'compat' = 'descripcion';
+  filtroCompat = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private crud: AdminCrudService,
     private filtro: CatalogoFiltroService,
-    private carrito: CarritoService
+    private carrito: CarritoService,
+    private seleccion: VehiculoSeleccionService
   ) {}
 
   ngOnInit(): void {
@@ -44,6 +49,8 @@ export class RepuestoDetalle implements OnInit {
     this.noEncontrado = false;
     this.cantidad = 1;
     this.fotoActiva = 0;
+    this.pestana = 'descripcion';
+    this.filtroCompat = '';
 
     this.crud.getRepuesto(id).subscribe({
       next: (data: any) => {
@@ -66,6 +73,53 @@ export class RepuestoDetalle implements OnInit {
 
   get enDesarmaduria(): boolean {
     return String(this.repuesto?.categoria_nombre ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('desarmaduria');
+  }
+
+  // --- Compatibilidades ---------------------------------------------------
+
+  /**
+   * Filas Marca / Modelo / Motor / Año. La API del repuesto trae solo ids y nombres armados,
+   * así que se cruzan los ids con /api/vehiculos/ (ya cargado por VehiculoSeleccionService).
+   * Se recalcula solo si cambia el repuesto o termina de cargar el catálogo.
+   */
+  get compatibilidades(): { marca: string; modelo: string; motor: string; anio: string }[] {
+    const catalogo = this.seleccion.catalogo;
+    if (this.cacheCompat.repuesto !== this.repuesto || this.cacheCompat.catalogo !== catalogo) {
+      const ids: number[] = this.repuesto?.vehiculos || [];
+      this.cacheCompat = {
+        repuesto: this.repuesto,
+        catalogo,
+        filas: catalogo
+          .filter(v => ids.includes(v.id))
+          .map(v => ({
+            marca: v.marca,
+            modelo: v.modelo,
+            motor: v.motorizacion || '',
+            anio: v.anio_fin ? `${v.anio_inicio}-${v.anio_fin}` : `${v.anio_inicio}+`,
+          }))
+          .sort((a, b) => `${a.marca} ${a.modelo} ${a.anio}`.localeCompare(`${b.marca} ${b.modelo} ${b.anio}`, 'es')),
+      };
+    }
+    return this.cacheCompat.filas;
+  }
+  private cacheCompat: { repuesto: any; catalogo: any[] | null; filas: any[] } = { repuesto: null, catalogo: null, filas: [] };
+
+  get compatibilidadesFiltradas() {
+    const texto = this.filtroCompat.trim().toLowerCase();
+    if (!texto) return this.compatibilidades;
+    return this.compatibilidades.filter(v =>
+      `${v.marca} ${v.modelo} ${v.motor} ${v.anio}`.toLowerCase().includes(texto)
+    );
+  }
+
+  /** Vehículo elegido por el cliente, como texto ("Toyota Yaris 2015-2020"); null si no eligió */
+  get vehiculoElegido(): string | null {
+    const v = this.seleccion.actual;
+    return v ? `${v.marca} ${v.modelo}${v.anio ? ' ' + v.anio : ''}` : null;
+  }
+
+  get esCompatible(): boolean {
+    return !!this.repuesto && this.seleccion.coincide(this.repuesto);
   }
 
   /** "cada 10.000 km o 12 meses"; vacío si no tiene intervalos */

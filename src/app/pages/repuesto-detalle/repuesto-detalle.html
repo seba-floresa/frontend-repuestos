@@ -26,9 +26,12 @@
 
       <!-- Imagen -->
       <div class="col-12 col-md-6">
-        <div class="bg-white rounded d-flex align-items-center justify-content-center" style="height: 380px;">
-          <img *ngIf="fotos.length" [src]="fotos[fotoActiva]" class="p-3" style="max-height: 380px; max-width: 100%; object-fit: contain;" [alt]="repuesto.nombre">
-          <span *ngIf="!fotos.length" class="text-secondary">Sin imagen</span>
+        <div *ngIf="fotos.length" class="bg-white rounded d-flex align-items-center justify-content-center" style="height: 380px;">
+          <img [src]="fotos[fotoActiva]" class="p-3" style="max-height: 380px; max-width: 100%; object-fit: contain;" [alt]="repuesto.nombre">
+        </div>
+        <div *ngIf="!fotos.length" class="bg-dark border border-secondary rounded d-flex flex-column align-items-center justify-content-center text-secondary" style="height: 380px;">
+          <i class="bi bi-image fs-1 mb-2" aria-hidden="true"></i>
+          <span>Imagen no disponible</span>
         </div>
 
         <div *ngIf="fotos.length > 1" class="d-flex gap-2 mt-2 flex-wrap">
@@ -56,17 +59,29 @@
         <h2 class="fw-bold mb-1">{{ repuesto.nombre }}</h2>
         <p class="text-muted mb-3">{{ repuesto.marca_fabricante }}</p>
 
-        <h2 class="fw-bold mb-1">{{ repuesto.precio | currency }}</h2>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+          <h2 class="fw-bold mb-0 me-2">{{ repuesto.precio | currency }}</h2>
+          <!-- Aviso según el vehículo elegido por el cliente -->
+          <ng-container *ngIf="vehiculoElegido">
+            <span *ngIf="esCompatible" class="badge bg-success py-2">
+              <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Compatible con tu {{ vehiculoElegido }}
+            </span>
+            <span *ngIf="!esCompatible" class="badge bg-secondary py-2">
+              <i class="bi bi-question-circle me-1" aria-hidden="true"></i>No confirmado para tu vehículo
+            </span>
+          </ng-container>
+        </div>
         <p class="mb-3"
-           [class.text-warning]="repuesto.stock > 0 && repuesto.stock <= 3"
+           [class.text-warning]="repuesto.stock > 0 && repuesto.stock < 5"
            [class.text-danger]="repuesto.stock === 0"
-           [class.text-light]="repuesto.stock > 3">
-          {{ repuesto.stock === 0 ? 'Sin stock' : (esDesarmaduria && repuesto.stock === 1 ? 'Pieza única disponible' : repuesto.stock + ' unidades disponibles') }}
+           [class.text-light]="repuesto.stock >= 5">
+          <ng-container *ngIf="repuesto.stock === 0">Sin stock</ng-container>
+          <ng-container *ngIf="esDesarmaduria && repuesto.stock === 1">Pieza única disponible</ng-container>
+          <ng-container *ngIf="repuesto.stock > 0 && repuesto.stock < 5 && !(esDesarmaduria && repuesto.stock === 1)">
+            <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Quedan pocas unidades ({{ repuesto.stock }} disponibles)
+          </ng-container>
+          <ng-container *ngIf="repuesto.stock >= 5">{{ repuesto.stock }} unidades disponibles</ng-container>
         </p>
-
-        <p *ngIf="repuesto.descripcion" class="mb-3" style="white-space: pre-line;">{{ repuesto.descripcion }}</p>
-
-        <p *ngIf="cambioRecomendado" class="mb-3 text-info">🔧 Cambio recomendado: {{ cambioRecomendado }}</p>
 
         <!-- Detalle de desgaste -->
         <div *ngIf="esDesarmaduria" class="border border-warning rounded p-3 mb-3 text-warning">
@@ -77,19 +92,13 @@
         <!-- Datos técnicos -->
         <table class="table table-dark table-sm mb-3">
           <tbody>
-            <tr><td class="text-muted" style="width: 40%;">SKU</td><td class="font-monospace">{{ repuesto.sku }}</td></tr>
-            <tr><td class="text-muted">Código OEM</td><td class="font-monospace">{{ repuesto.codigo_oem || '—' }}</td></tr>
-            <tr><td class="text-muted">Condición</td><td>{{ repuesto.condicion === 'NUEVO' ? 'Nuevo' : (repuesto.condicion === 'USADO' ? 'Usado (desarmaduría)' : 'Reacondicionado') }}</td></tr>
-            <tr><td class="text-muted">Peso</td><td>{{ repuesto.peso_kg }} kg</td></tr>
+            <!-- Filas vacías ocultas -->
+            <tr *ngIf="repuesto.sku"><td class="text-muted" style="width: 40%;">SKU</td><td class="font-monospace">{{ repuesto.sku }}</td></tr>
+            <tr *ngIf="repuesto.codigo_oem"><td class="text-muted" style="width: 40%;">Código OEM</td><td class="font-monospace">{{ repuesto.codigo_oem }}</td></tr>
+            <tr *ngIf="repuesto.condicion"><td class="text-muted" style="width: 40%;">Condición</td><td>{{ repuesto.condicion === 'NUEVO' ? 'Nuevo' : (repuesto.condicion === 'USADO' ? 'Usado (desarmaduría)' : 'Reacondicionado') }}</td></tr>
+            <tr *ngIf="repuesto.peso_kg"><td class="text-muted" style="width: 40%;">Peso</td><td>{{ repuesto.peso_kg }} kg</td></tr>
           </tbody>
         </table>
-
-        <!-- Compatibilidad -->
-        <h6 class="fw-bold">Compatibilidad vehicular</h6>
-        <div class="d-flex flex-wrap gap-1 mb-4">
-          <span *ngFor="let v of repuesto.vehiculos_nombres" class="badge bg-secondary">{{ v }}</span>
-          <span *ngIf="!repuesto.vehiculos_nombres?.length" class="text-muted small">Compatibilidad no especificada.</span>
-        </div>
 
         <!-- Cantidad + carrito -->
         <div class="d-flex gap-3 align-items-center">
@@ -104,6 +113,71 @@
         </div>
 
         <a routerLink="/" class="d-inline-block mt-4 text-white">← Volver al catálogo</a>
+      </div>
+    </div>
+
+    <!-- Pestañas: Descripción / Compatibilidades -->
+    <ul class="nav nav-tabs border-secondary mt-5" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button type="button" class="nav-link" role="tab" id="tab-descripcion" aria-controls="panel-descripcion"
+                [class.active]="pestana === 'descripcion'" [class.text-white]="pestana !== 'descripcion'"
+                [attr.aria-selected]="pestana === 'descripcion'" (click)="pestana = 'descripcion'">Descripción</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button type="button" class="nav-link" role="tab" id="tab-compat" aria-controls="panel-compat"
+                [class.active]="pestana === 'compat'" [class.text-white]="pestana !== 'compat'"
+                [attr.aria-selected]="pestana === 'compat'" (click)="pestana = 'compat'">
+          Compatibilidades <span class="badge bg-secondary ms-1">{{ compatibilidades.length }}</span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="border border-top-0 border-secondary rounded-bottom p-3 p-md-4 bg-dark">
+      <div *ngIf="pestana === 'descripcion'" id="panel-descripcion" role="tabpanel" aria-labelledby="tab-descripcion">
+        <!-- Interpolación: se muestra como texto, nunca como HTML -->
+        <p *ngIf="repuesto.descripcion" class="mb-0" style="white-space: pre-line;">{{ repuesto.descripcion }}</p>
+        <p *ngIf="!repuesto.descripcion" class="text-secondary mb-0">Sin descripción disponible</p>
+
+        <div *ngIf="cambioRecomendado" class="alert alert-info d-flex align-items-center gap-2 mt-3 mb-0 border-0">
+          <i class="bi bi-wrench-adjustable fs-5" aria-hidden="true"></i>
+          <span><strong>Cambio recomendado:</strong> {{ cambioRecomendado }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="pestana === 'compat'" id="panel-compat" role="tabpanel" aria-labelledby="tab-compat">
+        <p *ngIf="!compatibilidades.length" class="text-secondary mb-0">Sin vehículos asociados</p>
+
+        <ng-container *ngIf="compatibilidades.length">
+          <div *ngIf="compatibilidades.length > 10" class="mb-3" style="max-width: 360px;">
+            <label for="buscarCompat" class="visually-hidden">Buscar vehículo compatible</label>
+            <input id="buscarCompat" type="search" class="form-control form-control-sm bg-secondary text-white border-0"
+                   placeholder="Buscar marca, modelo, motor o año..." [(ngModel)]="filtroCompat">
+          </div>
+
+          <div class="table-responsive border border-secondary rounded" style="max-height: 320px; overflow-y: auto;">
+            <table class="table table-dark table-sm table-hover mb-0 align-middle">
+              <thead class="position-sticky top-0">
+                <tr class="text-secondary small">
+                  <th scope="col" class="px-3">Marca</th>
+                  <th scope="col">Modelo</th>
+                  <th scope="col">Motor</th>
+                  <th scope="col">Año</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let v of compatibilidadesFiltradas">
+                  <td class="px-3">{{ v.marca }}</td>
+                  <td>{{ v.modelo }}</td>
+                  <td>{{ v.motor || '—' }}</td>
+                  <td>{{ v.anio }}</td>
+                </tr>
+                <tr *ngIf="!compatibilidadesFiltradas.length">
+                  <td colspan="4" class="text-center text-secondary py-3">Ningún vehículo coincide con la búsqueda.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
       </div>
     </div>
   </ng-container>
