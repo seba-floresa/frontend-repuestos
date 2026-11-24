@@ -41,6 +41,7 @@
       <span class="fw-bold me-2">{{ informe.modo === 'importar' ? 'Resultado de la importación' : 'Resultado de la validación' }}</span>
       <span class="badge bg-secondary">{{ informe.total }} filas</span>
       <span class="badge bg-success">{{ informe.validas }} válidas</span>
+      <span class="badge bg-warning text-dark" *ngIf="informe.duplicadas">{{ informe.duplicadas }} duplicadas (no se importan)</span>
       <span class="badge bg-danger" *ngIf="informe.con_error">{{ informe.con_error }} con error</span>
       <span class="badge bg-info text-dark" *ngIf="informe.modo === 'importar'">{{ informe.creadas }} creadas</span>
     </div>
@@ -63,9 +64,10 @@
               <td class="font-monospace small text-warning">{{ f.sku || (f.ok ? '(automático)' : '—') }}</td>
               <td>
                 <span *ngIf="f.ok" class="badge bg-success">{{ informe.modo === 'importar' ? 'Creado' : 'OK' }}</span>
-                <span *ngIf="!f.ok" class="badge bg-danger">Error</span>
+                <span *ngIf="f.estado === 'duplicada'" class="badge bg-warning text-dark">Duplicada</span>
+                <span *ngIf="f.estado === 'error'" class="badge bg-danger">Error</span>
               </td>
-              <td class="small" [class.text-danger]="!f.ok">{{ f.motivo }}</td>
+              <td class="small" [class.text-danger]="f.estado === 'error'" [class.text-warning]="f.estado === 'duplicada'">{{ f.motivo }}</td>
             </tr>
           </tbody>
         </table>

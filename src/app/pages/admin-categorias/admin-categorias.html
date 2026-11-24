@@ -34,6 +34,15 @@
               <input type="text" class="form-control bg-secondary text-white border-0" formControlName="nombre" placeholder="Ej: Suspensión">
             </div>
             <div class="mb-3">
+              <label class="form-label small fw-semibold" for="inpPrefijo">Prefijo de SKU <span class="text-secondary fw-normal">(3 letras)</span></label>
+              <input id="inpPrefijo" type="text" maxlength="3" class="form-control bg-secondary text-white border-0 text-uppercase font-monospace"
+                     formControlName="prefijo_sku" placeholder="Ej: SUS → RS-SUS-0001" aria-describedby="ayudaPrefijo">
+              <div id="ayudaPrefijo" class="form-text text-secondary small">
+                Vacío: se usan las 3 primeras letras del nombre. DES genera DES-0001 (desarmaduría).
+              </div>
+              <div *ngIf="catForm.get('prefijo_sku')?.invalid" class="small text-danger mt-1">Debe tener exactamente 3 letras.</div>
+            </div>
+            <div class="mb-3">
               <label class="form-label small fw-semibold">Descripción</label>
               <textarea class="form-control bg-secondary text-white border-0" rows="2" formControlName="descripcion" placeholder="Opcional"></textarea>
             </div>
@@ -87,7 +96,10 @@
             <!-- Fila de categoría -->
             <div class="d-flex align-items-center justify-content-between px-3 py-3">
               <div>
-                <div class="fw-bold">{{ c.nombre }}</div>
+                <div class="fw-bold">
+                  {{ c.nombre }}
+                  <span *ngIf="c.prefijo_sku" class="badge bg-secondary font-monospace ms-1" title="Prefijo de SKU">{{ c.prefijo_sku }}</span>
+                </div>
                 <div class="small text-secondary">
                   {{ c.descripcion || 'Sin descripción' }} ·
                   {{ subcategoriasDe(c.id).length }} subcategorías · {{ repuestosDeCategoria(c.id) }} repuestos

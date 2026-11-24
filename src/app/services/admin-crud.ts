@@ -88,14 +88,14 @@ export class AdminCrudService {
   }
 
   // CRUD de categorías
-  crearCategoria(data: { nombre: string; descripcion?: string }): Observable<any> {
+  crearCategoria(data: { nombre: string; descripcion?: string; prefijo_sku?: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}categorias/`, data, {
       headers: this.getAuthHeaders(),
       withCredentials: true
     });
   }
 
-  actualizarCategoria(id: number, data: { nombre: string; descripcion?: string }): Observable<any> {
+  actualizarCategoria(id: number, data: { nombre: string; descripcion?: string; prefijo_sku?: string }): Observable<any> {
     return this.http.patch(`${this.apiUrl}categorias/${id}/`, data, {
       headers: this.getAuthHeaders(),
       withCredentials: true

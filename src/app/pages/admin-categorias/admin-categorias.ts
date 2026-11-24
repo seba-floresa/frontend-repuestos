@@ -27,6 +27,7 @@ export class AdminCategoriasComponent implements OnInit {
   ngOnInit(): void {
     this.catForm = this.fb.group({
       nombre: ['', Validators.required],
+      prefijo_sku: ['', Validators.pattern(/^[A-Za-z]{3}$/)],
       descripcion: ['']
     });
     this.subForm = this.fb.group({
@@ -71,6 +72,7 @@ export class AdminCategoriasComponent implements OnInit {
     if (this.catForm.invalid) return;
     const datos = {
       nombre: this.catForm.value.nombre.trim(),
+      prefijo_sku: (this.catForm.value.prefijo_sku || '').trim().toUpperCase(),
       descripcion: (this.catForm.value.descripcion || '').trim()
     };
 
@@ -90,13 +92,13 @@ export class AdminCategoriasComponent implements OnInit {
 
   editarCategoria(c: any): void {
     this.editandoCatId = c.id;
-    this.catForm.patchValue({ nombre: c.nombre, descripcion: c.descripcion || '' });
+    this.catForm.patchValue({ nombre: c.nombre, prefijo_sku: c.prefijo_sku || '', descripcion: c.descripcion || '' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancelarCategoria(): void {
     this.editandoCatId = null;
-    this.catForm.reset({ nombre: '', descripcion: '' });
+    this.catForm.reset({ nombre: '', prefijo_sku: '', descripcion: '' });
   }
 
   eliminarCategoria(c: any): void {
