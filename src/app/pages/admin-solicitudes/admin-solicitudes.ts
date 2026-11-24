@@ -2,7 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, debounceTime } from 'rxjs';
 import { AdminCrudService } from '../../services/admin-crud';
 import { ESTADOS_SOLICITUD, claseEstado } from '../admin-layout/estados';
@@ -16,6 +16,7 @@ import { ESTADOS_SOLICITUD, claseEstado } from '../admin-layout/estados';
 export class AdminSolicitudesComponent implements OnInit {
   private crud = inject(AdminCrudService);
   private destroyRef = inject(DestroyRef);
+  private route = inject(ActivatedRoute);
   private busqueda$ = new Subject<void>();
 
   readonly estados = ESTADOS_SOLICITUD;
@@ -35,6 +36,7 @@ export class AdminSolicitudesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.estado = this.route.snapshot.queryParamMap.get('estado') || '';
     this.busqueda$.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe(() => this.irAPagina(1));
     this.cargar();
   }

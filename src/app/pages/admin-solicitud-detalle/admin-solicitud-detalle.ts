@@ -22,12 +22,15 @@ export class AdminSolicitudDetalleComponent implements OnInit {
   solicitud: any = null;
   error = '';
   aviso = '';
+  avisoCorreo = '';
   guardando = false;
 
   form = this.fb.group({
     estado: ['PENDIENTE', Validators.required],
     valor_cotizado: [null as number | null, Validators.min(0)],
-    comentario_admin: ['']
+    comentario_admin: [''],
+    notificar_cliente: [false],
+    mensaje_cliente: ['', Validators.maxLength(1000)]
   });
 
   ngOnInit(): void {
@@ -40,7 +43,10 @@ export class AdminSolicitudDetalleComponent implements OnInit {
 
   private mostrar(s: any): void {
     this.solicitud = s;
-    this.form.reset({ estado: s.estado, valor_cotizado: s.valor_cotizado, comentario_admin: s.comentario_admin || '' });
+    this.form.reset({
+      estado: s.estado, valor_cotizado: s.valor_cotizado, comentario_admin: s.comentario_admin || '',
+      notificar_cliente: false, mensaje_cliente: ''
+    });
   }
 
   guardar(): void {
@@ -49,20 +55,32 @@ export class AdminSolicitudDetalleComponent implements OnInit {
     this.guardando = true;
     this.error = '';
     this.aviso = '';
+    this.avisoCorreo = '';
+    const notificar = !!v.notificar_cliente;
     this.crud.actualizarSolicitud(this.solicitud.id, {
       estado: v.estado!,
       valor_cotizado: v.valor_cotizado ?? null,
-      comentario_admin: (v.comentario_admin || '').trim()
+      comentario_admin: (v.comentario_admin || '').trim(),
+      notificar_cliente: notificar,
+      mensaje_cliente: notificar ? (v.mensaje_cliente || '').trim() : ''
     }).subscribe({
       next: (s: any) => {
         this.guardando = false;
         this.mostrar(s);
-        this.aviso = 'Solicitud actualizada.';
+        if (!notificar) {
+          this.aviso = 'Solicitud actualizada.';
+        } else if (s.correo_enviado) {
+          this.aviso = `Solicitud actualizada. Correo enviado a ${s.correo_destino}.`;
+        } else {
+          // El cambio se guardó aunque el correo no haya salido
+          this.aviso = 'Solicitud actualizada.';
+          this.avisoCorreo = `No se pudo enviar el correo al cliente. ${s.motivo_correo || ''}`.trim();
+        }
       },
       error: (err: any) => {
         this.guardando = false;
         const e = err?.error || {};
-        this.error = [e.estado, e.valor_cotizado, e.comentario_admin].flat().filter(Boolean).join(' ') || 'No se pudo guardar la solicitud.';
+        this.error = [e.estado, e.valor_cotizado, e.comentario_admin, e.mensaje_cliente].flat().filter(Boolean).join(' ') || 'No se pudo guardar la solicitud.';
       }
     });
   }

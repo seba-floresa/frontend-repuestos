@@ -84,7 +84,9 @@ export class AdminCrudService {
     return this.http.get(`${this.apiUrl}admin/solicitudes/${id}/`, { withCredentials: true });
   }
 
-  actualizarSolicitud(id: number, data: { estado: string; valor_cotizado: number | null; comentario_admin: string }): Observable<any> {
+  actualizarSolicitud(id: number, data: {
+    estado: string; valor_cotizado: number | null; comentario_admin: string; notificar_cliente: boolean; mensaje_cliente: string
+  }): Observable<any> {
     return this.http.patch(`${this.apiUrl}admin/solicitudes/${id}/`, data, {
       headers: this.getAuthHeaders(),
       withCredentials: true

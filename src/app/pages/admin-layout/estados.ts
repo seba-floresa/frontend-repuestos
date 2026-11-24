@@ -13,7 +13,9 @@ export const ESTADOS_PEDIDO = [
 export const ESTADOS_SOLICITUD = [
   { valor: 'PENDIENTE', texto: 'Pendiente', clase: 'bg-warning text-dark' },
   { valor: 'EN_GESTION', texto: 'En gestión', clase: 'bg-info text-dark' },
+  { valor: 'COTIZADA', texto: 'Cotizada', clase: 'bg-primary' },
   { valor: 'RESUELTA', texto: 'Resuelta', clase: 'bg-success' },
+  { valor: 'NO_DISPONIBLE', texto: 'No disponible', clase: 'bg-danger' },
 ];
 
 const todos = [...ESTADOS_PEDIDO, ...ESTADOS_SOLICITUD];
