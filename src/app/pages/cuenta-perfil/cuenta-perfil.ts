@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -17,6 +18,7 @@ function clavesIguales(grupo: AbstractControl): ValidationErrors | null {
 export class CuentaPerfilComponent implements OnInit {
   private fb = inject(FormBuilder);
   private cuenta = inject(CuentaService);
+  private destroyRef = inject(DestroyRef);
 
   // Solo lectura
   email = '';
@@ -64,6 +66,10 @@ export class CuentaPerfilComponent implements OnInit {
       },
     });
     this.cargarVehiculos();
+    // Agregado desde el modal del header mientras esta página está abierta (el duplicado trae el mismo id)
+    this.cuenta.vehiculoAgregado$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(v => {
+      if (!this.vehiculos.some(x => x.id === v.id)) this.vehiculos = [...this.vehiculos, v];
+    });
   }
 
   invalido(form: 'perfil' | 'clave', campo: string): boolean {

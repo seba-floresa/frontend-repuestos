@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 
 /** Cuenta del cliente con sesión iniciada: perfil, contraseña, vehículos y pedidos. */
 @Injectable({ providedIn: 'root' })
@@ -9,6 +9,7 @@ export class CuentaService {
 
   /** Avisa al header el nuevo nombre ("Hola, <nombre>") cuando se guarda el perfil */
   readonly nombreCambiado$ = new Subject<string>();
+  readonly vehiculoAgregado$ = new Subject<any>();
 
   constructor(private http: HttpClient) {}
 
@@ -35,6 +36,13 @@ export class CuentaService {
 
   getVehiculos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}mis-vehiculos/`, { withCredentials: true });
+  }
+
+  /** Guarda el vehículo del modal en la cuenta y avisa a "Mis vehículos" para que lo muestre sin recargar */
+  agregarVehiculo(data: { vehiculo_id: number } | { patente: string } | { vin: string }): Observable<any> {
+    return this.http.post(`${this.api}mis-vehiculos/`, data, this.opciones()).pipe(
+      tap(v => this.vehiculoAgregado$.next(v))
+    );
   }
 
   quitarVehiculo(id: number): Observable<any> {

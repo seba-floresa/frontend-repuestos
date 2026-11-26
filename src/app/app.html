@@ -295,6 +295,14 @@
   </div>
 </div>
 
+<!-- Aviso discreto si el vehículo no se pudo guardar en la cuenta -->
+<div *ngIf="avisoVehiculo" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080; max-width: 380px;">
+  <div class="alert alert-warning border-0 small py-2 mb-0 d-flex align-items-start gap-2 shadow" role="status">
+    <span class="flex-grow-1">{{ avisoVehiculo }}</span>
+    <button type="button" class="btn-close btn-sm" aria-label="Cerrar aviso" (click)="avisoVehiculo = ''"></button>
+  </div>
+</div>
+
 <router-outlet></router-outlet>
 
 <!-- FOOTER -->

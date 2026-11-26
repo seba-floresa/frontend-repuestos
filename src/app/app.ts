@@ -17,6 +17,8 @@ import { CuentaService } from './services/cuenta.service';
 export class App implements OnInit {
   buscadorForm!: FormGroup;
   mensajeError: string = '';
+  avisoVehiculo = '';
+  private avisoTimer?: ReturnType<typeof setTimeout>;
 
   usuario: { username: string; nombre?: string; is_staff: boolean } | null = null;
   activeTab: string = 'datos';
@@ -96,15 +98,32 @@ export class App implements OnInit {
     if (!valor) return;
 
     this.veh.buscarIdentificador(valor).subscribe({
-      next: () => document.getElementById('btnCerrarModal')?.click(),
+      next: () => {
+        document.getElementById('btnCerrarModal')?.click();
+        this.guardarEnCuenta(tipo === 'patente' ? { patente: valor } : { vin: valor });
+      },
       error: () => (this.mensajeError = 'Vehículo no encontrado. Verifica los datos ingresados.')
     });
   }
 
   agregarPorDatos(): void {
+    const id = this.veh.versionId;
     if (this.veh.aplicarDatos()) {
       document.getElementById('btnCerrarModal')?.click();
+      if (id) this.guardarEnCuenta({ vehiculo_id: id });
     }
+  }
+
+  /** Con sesión, también lo guarda en "Mis vehículos". Si falla, el filtro del catálogo sigue igual. */
+  private guardarEnCuenta(data: { vehiculo_id: number } | { patente: string } | { vin: string }): void {
+    if (!this.usuario) return;
+    this.cuenta.agregarVehiculo(data).subscribe({
+      error: e => {
+        this.avisoVehiculo = `No pudimos guardarlo en tu cuenta${e?.error?.error ? ': ' + e.error.error : '.'} Igual lo usaremos para filtrar el catálogo.`;
+        clearTimeout(this.avisoTimer);
+        this.avisoTimer = setTimeout(() => (this.avisoVehiculo = ''), 8000);
+      }
+    });
   }
 
   limpiarVehiculo(): void {
