@@ -6,6 +6,7 @@ import { AdminCrudService } from './services/admin-crud';
 import { CatalogoFiltroService } from './services/catalogo-filtro';
 import { VehiculoSeleccionService } from './services/vehiculo-seleccion.service';
 import { CarritoService } from './services/carrito.service';
+import { CuentaService } from './services/cuenta.service';
 
 @Component({
   selector: 'app-root',
@@ -31,7 +32,8 @@ export class App implements OnInit {
     private crud: AdminCrudService,
     public filtro: CatalogoFiltroService,
     public veh: VehiculoSeleccionService,
-    public carrito: CarritoService
+    public carrito: CarritoService,
+    private cuenta: CuentaService
   ) {}
 
   /** En /admin/* se oculta lo que es solo de la tienda (ej: "Mi Vehículo") */
@@ -48,6 +50,10 @@ export class App implements OnInit {
     this.buscadorForm = this.fb.group({ patente: [''], vin: [''] });
     this.verificarSesion();
     this.cargarCategorias();
+    // "Hola, <nombre>" cambia al guardar el perfil
+    this.cuenta.nombreCambiado$.subscribe(nombre => {
+      if (this.usuario) this.usuario = { ...this.usuario, nombre };
+    });
   }
 
   verificarSesion(): void {

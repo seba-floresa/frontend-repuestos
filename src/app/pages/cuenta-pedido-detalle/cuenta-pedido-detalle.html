@@ -1,0 +1,112 @@
+<div class="container py-4 text-white" style="max-width: 960px;">
+  <a routerLink="/cuenta/pedidos" class="btn btn-sm btn-outline-light mb-3">← Volver a mis pedidos</a>
+
+  @if (cargando) {
+    <p class="text-secondary">Cargando el pedido...</p>
+  } @else if (error) {
+    <div class="alert alert-danger border-0" role="alert">{{ error }}</div>
+  } @else if (pedido) {
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Pedido #{{ pedido.id }}</h2>
+        <p class="text-secondary mb-0">Realizado el {{ pedido.fecha_creacion | date: "dd/MM/yyyy 'a las' HH:mm" }}</p>
+      </div>
+      <span class="badge fs-6 {{ claseEstado(pedido.estado) }}">{{ textoEstado(pedido.estado) }}</span>
+    </div>
+
+    <!-- Estado -->
+    <div class="card bg-dark text-white border-secondary mb-3">
+      <div class="card-body">
+        @if (paso >= 0) {
+          <ol class="linea" aria-label="Estado del pedido">
+            @for (p of pasos; track p; let i = $index) {
+              <li class="paso" [class.hecho]="i <= paso" [class.actual]="i === paso" [attr.aria-current]="i === paso ? 'step' : null">
+                <span class="punto">
+                  @if (i <= paso) { <i class="bi bi-check-lg" aria-hidden="true"></i> } @else { {{ i + 1 }} }
+                </span>
+                <span class="etiqueta small">{{ textoEstado(p) }}</span>
+              </li>
+            }
+          </ol>
+          @if (paso < 2 && pedido.dias_habiles_estimados) {
+            <p class="small text-secondary mt-3 mb-0">El despacho a tu comuna tarda aproximadamente {{ pedido.dias_habiles_estimados }} días hábiles.</p>
+          }
+        } @else {
+          <p class="mb-0">{{ mensajeEstado || 'Estado: ' + textoEstado(pedido.estado) }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Seguimiento del envío -->
+    @if (conSeguimiento) {
+      <div class="card bg-dark text-white border-primary mb-3">
+        <div class="card-body">
+          <h3 class="h6 fw-bold mb-3">Seguimiento del envío</h3>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="text-secondary small">Courier</span>
+            <span class="fw-bold">{{ pedido.empresa_courier }}</span>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="text-secondary small">Código</span>
+            <span class="font-monospace fw-bold user-select-all">{{ pedido.codigo_seguimiento }}</span>
+            <button type="button" class="btn btn-sm btn-outline-light" (click)="copiarCodigo()">
+              <i class="bi bi-clipboard me-1" aria-hidden="true"></i>Copiar
+            </button>
+            <span class="small text-secondary" role="status">{{ copiado }}</span>
+          </div>
+          @if (pedido.seguimiento_url) {
+            <a class="btn btn-brand fw-bold mt-3" [href]="pedido.seguimiento_url" target="_blank" rel="noopener noreferrer">
+              Seguir mi envío en {{ pedido.empresa_courier }} <i class="bi bi-box-arrow-up-right ms-1" aria-hidden="true"></i>
+            </a>
+          } @else {
+            <p class="small text-secondary mt-2 mb-0">Usa este código en el sitio de {{ pedido.empresa_courier }} para seguir tu envío.</p>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="row g-3">
+      <!-- Productos y totales -->
+      <div class="col-lg-8">
+        <div class="card bg-dark text-white border-secondary h-100">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Productos</h3>
+            <ul class="list-unstyled mb-0">
+              @for (d of pedido.productos; track $index) {
+                <li class="d-flex justify-content-between gap-3 border-bottom border-secondary py-2">
+                  <div style="min-width: 0;">
+                    <div class="text-break">{{ d.nombre }}</div>
+                    <div class="small text-secondary">
+                      <span class="font-monospace">{{ d.sku }}</span> · {{ d.cantidad }} × {{ d.precio | currency }}
+                    </div>
+                  </div>
+                  <div class="text-nowrap fw-bold">{{ d.subtotal | currency }}</div>
+                </li>
+              }
+            </ul>
+            <dl class="row mb-0 mt-3 small">
+              <dt class="col-6 fw-normal text-secondary">Subtotal</dt><dd class="col-6 text-end mb-1">{{ pedido.subtotal | currency }}</dd>
+              <dt class="col-6 fw-normal text-secondary">Envío</dt><dd class="col-6 text-end mb-1">{{ pedido.costo_envio | currency }}</dd>
+              <dt class="col-6 fs-6">Total</dt><dd class="col-6 text-end fs-6 fw-bold text-success mb-0">{{ pedido.monto_total | currency }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <!-- Despacho -->
+      <div class="col-lg-4">
+        <div class="card bg-dark text-white border-secondary h-100">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Dirección de despacho</h3>
+            <div *ngIf="pedido.nombre_destinatario" class="fw-bold">{{ pedido.nombre_destinatario }}</div>
+            <div class="text-break">{{ pedido.direccion_calle }}</div>
+            <div *ngIf="pedido.direccion_complemento" class="text-break">{{ pedido.direccion_complemento }}</div>
+            <div *ngIf="pedido.instrucciones_entrega" class="small text-secondary mt-2 text-break">
+              Instrucciones: {{ pedido.instrucciones_entrega }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

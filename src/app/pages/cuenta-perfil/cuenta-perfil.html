@@ -1,0 +1,154 @@
+<div class="container py-4 text-white" style="max-width: 860px;">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <h2 class="fw-bold mb-0">Mi perfil</h2>
+    <a routerLink="/cuenta/pedidos" class="btn btn-sm btn-outline-light">Ver mis pedidos</a>
+  </div>
+
+  @if (cargando) {
+    <p class="text-secondary">Cargando tus datos...</p>
+  } @else if (errorCarga) {
+    <div class="alert alert-danger border-0" role="alert">
+      {{ errorCarga }} <a routerLink="/login" class="alert-link">Iniciar sesión</a>
+    </div>
+  } @else {
+    <!-- Datos personales -->
+    <form [formGroup]="perfilForm" (ngSubmit)="guardarPerfil()" class="card bg-dark text-white border-secondary mb-4">
+      <div class="card-header fw-bold text-white">Datos personales</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label for="perfilNombre" class="form-label small">Nombre completo</label>
+            <input id="perfilNombre" type="text" class="form-control" formControlName="nombre_completo" maxlength="120"
+                   autocomplete="name" [class.is-invalid]="invalido('perfil', 'nombre_completo')">
+            <div class="invalid-feedback">Ingresa tu nombre completo.</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="perfilTelefono" class="form-label small">Teléfono</label>
+            <div class="input-group has-validation">
+              <span class="input-group-text">+56</span>
+              <input id="perfilTelefono" type="tel" inputmode="numeric" class="form-control" formControlName="telefono"
+                     maxlength="9" placeholder="912345678" autocomplete="tel-national"
+                     (input)="soloDigitos($event)" [class.is-invalid]="invalido('perfil', 'telefono')">
+              <div class="invalid-feedback">Ingresa 9 dígitos (ej: 912345678).</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="perfilRut" class="form-label small">RUT</label>
+            <input id="perfilRut" type="text" class="form-control" [value]="rut" disabled>
+          </div>
+          <div class="col-12">
+            <label for="perfilEmail" class="form-label small">Correo electrónico</label>
+            <input id="perfilEmail" type="email" class="form-control" [value]="email" disabled>
+            <div class="form-text text-secondary">El correo y el RUT no se pueden cambiar.</div>
+          </div>
+        </div>
+
+        <div *ngIf="errorPerfil" class="alert alert-danger border-0 small py-2 mt-3 mb-0" role="alert">{{ errorPerfil }}</div>
+        <div *ngIf="avisoPerfil" class="alert alert-success border-0 small py-2 mt-3 mb-0" role="status">{{ avisoPerfil }}</div>
+
+        <button type="submit" class="btn btn-brand fw-bold mt-3" [disabled]="guardandoPerfil">
+          {{ guardandoPerfil ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Cambiar contraseña -->
+    <form [formGroup]="claveForm" (ngSubmit)="cambiarClave()" class="card bg-dark text-white border-secondary mb-4">
+      <div class="card-header fw-bold text-white">Cambiar contraseña</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <label for="claveActual" class="form-label small">Contraseña actual</label>
+            <input id="claveActual" type="password" class="form-control" formControlName="actual" autocomplete="current-password"
+                   [class.is-invalid]="invalido('clave', 'actual')">
+            <div class="invalid-feedback">Ingresa tu contraseña actual.</div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="claveNueva" class="form-label small">Nueva contraseña</label>
+            <input id="claveNueva" type="password" class="form-control" formControlName="nueva" autocomplete="new-password"
+                   [class.is-invalid]="invalido('clave', 'nueva')">
+            <div class="invalid-feedback">Mínimo 8 caracteres.</div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="claveConfirmar" class="form-label small">Repite la nueva</label>
+            <input id="claveConfirmar" type="password" class="form-control" formControlName="confirmar" autocomplete="new-password"
+                   [class.is-invalid]="claveForm.controls.confirmar.touched && (claveForm.controls.confirmar.invalid || claveForm.hasError('distintas'))">
+            <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+          </div>
+        </div>
+        <div class="form-text text-secondary">Usa al menos 8 caracteres, que no sean solo números ni una clave común.</div>
+
+        <div *ngIf="errorClave" class="alert alert-danger border-0 small py-2 mt-3 mb-0" role="alert">{{ errorClave }}</div>
+        <div *ngIf="avisoClave" class="alert alert-success border-0 small py-2 mt-3 mb-0" role="status">{{ avisoClave }}</div>
+
+        <button type="submit" class="btn btn-outline-light fw-bold mt-3" [disabled]="guardandoClave">
+          {{ guardandoClave ? 'Actualizando...' : 'Cambiar contraseña' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Mis vehículos -->
+    <div class="card bg-dark text-white border-secondary mb-4">
+      <div class="card-header fw-bold text-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>Mis vehículos</span>
+        <button type="button" class="btn btn-sm btn-brand" data-bs-toggle="modal" data-bs-target="#modalBuscadorVehiculo">
+          <i class="bi bi-plus-lg me-1"></i>Agregar vehículo
+        </button>
+      </div>
+      <ul class="list-group list-group-flush">
+        @for (v of vehiculos; track v.id) {
+          <li class="list-group-item bg-transparent text-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+              <div class="fw-bold">{{ v.marca }} {{ v.modelo }}</div>
+              <div class="small text-secondary">
+                Año {{ v.anio }}<span *ngIf="v.motorizacion"> · Motor {{ v.motorizacion }}</span><span *ngIf="v.patente"> · Patente {{ v.patente }}</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="quitarVehiculo(v)">Quitar</button>
+          </li>
+        } @empty {
+          <li class="list-group-item bg-transparent text-secondary small">No tienes vehículos guardados.</li>
+        }
+      </ul>
+      <div *ngIf="errorVehiculos" class="alert alert-danger border-0 small py-2 m-3" role="alert">{{ errorVehiculos }}</div>
+    </div>
+
+    <!-- Zona de peligro -->
+    <div class="card bg-dark text-white border-danger">
+      <div class="card-header fw-bold text-danger border-danger">Zona de peligro</div>
+      <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <p class="small mb-0">Elimina tus datos personales de RepuestosRS. Esta acción no se puede deshacer.</p>
+        <button type="button" class="btn btn-outline-danger fw-bold" (click)="abrirEliminar()">Eliminar mi cuenta</button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal de confirmación (controlado por Angular) -->
+@if (modalEliminar) {
+  <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloEliminar" (keydown.escape)="cerrarEliminar()">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content bg-dark text-white border-danger" (submit)="$event.preventDefault(); eliminarCuenta()">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title fw-bold" id="tituloEliminar">¿Eliminar tu cuenta?</h5>
+          <button type="button" class="btn-close btn-close-white" aria-label="Cerrar" (click)="cerrarEliminar()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small">Se borrarán tus datos personales (nombre, correo, teléfono, RUT) y tus vehículos guardados, y no podrás volver a iniciar sesión con esta cuenta.</p>
+          <p class="small">Tus pedidos se conservan en nuestros registros por motivos contables y de garantía.</p>
+          <label for="claveEliminar" class="form-label small">Escribe tu contraseña para confirmar</label>
+          <input id="claveEliminar" type="password" class="form-control" name="claveEliminar" autocomplete="current-password"
+                 [value]="claveEliminar" (input)="claveEliminar = $any($event.target).value" autofocus>
+          <div *ngIf="errorEliminar" class="alert alert-danger border-0 small py-2 mt-3 mb-0" role="alert">{{ errorEliminar }}</div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-light" (click)="cerrarEliminar()" [disabled]="eliminando">Cancelar</button>
+          <button type="submit" class="btn btn-danger fw-bold" [disabled]="eliminando">
+            {{ eliminando ? 'Eliminando...' : 'Eliminar mi cuenta' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
+}

@@ -1,0 +1,69 @@
+<div class="container py-4 text-white" style="max-width: 960px;">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <h2 class="fw-bold mb-0">Mis pedidos</h2>
+    <a routerLink="/cuenta/perfil" class="btn btn-sm btn-outline-light">Mi perfil</a>
+  </div>
+
+  @if (cargando) {
+    <p class="text-secondary">Cargando tus pedidos...</p>
+  } @else if (error) {
+    <div class="alert alert-danger border-0" role="alert">
+      {{ error }} <a routerLink="/login" class="alert-link">Iniciar sesión</a>
+    </div>
+  } @else if (!pedidos.length) {
+    <div class="card bg-dark text-white border-secondary">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-bag text-secondary" style="font-size: 2.5rem;"></i>
+        <p class="mt-3 mb-1">Aún no tienes pedidos.</p>
+        <p class="small text-secondary">Cuando compres, aquí podrás seguir el estado de tu envío.</p>
+        <a routerLink="/" class="btn btn-brand fw-bold">Ir al catálogo</a>
+      </div>
+    </div>
+  } @else {
+    <!-- Escritorio: tabla -->
+    <div class="card bg-dark border-secondary d-none d-md-block">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0">
+          <thead>
+            <tr class="small text-secondary">
+              <th>Pedido</th><th>Fecha</th><th class="text-end">Productos</th><th class="text-end">Total</th><th>Estado</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of pedidos; track p.id) {
+              <tr>
+                <td class="fw-bold">#{{ p.id }}</td>
+                <td>{{ p.fecha_creacion | date: 'dd/MM/yyyy' }}</td>
+                <td class="text-end">{{ p.cantidad_items }}</td>
+                <td class="text-end text-nowrap">{{ p.monto_total | currency }}</td>
+                <td><span class="badge {{ claseEstado(p.estado) }}">{{ textoEstado(p.estado) }}</span></td>
+                <td class="text-end"><a [routerLink]="['/cuenta/pedidos', p.id]" class="btn btn-sm btn-outline-light text-nowrap">Ver detalle</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Móvil: tarjetas -->
+    <div class="d-md-none d-flex flex-column gap-2">
+      @for (p of pedidos; track p.id) {
+        <div class="card bg-dark text-white border-secondary">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div>
+                <div class="fw-bold">Pedido #{{ p.id }}</div>
+                <div class="small text-secondary">{{ p.fecha_creacion | date: 'dd/MM/yyyy' }} · {{ p.cantidad_items }} {{ p.cantidad_items === 1 ? 'producto' : 'productos' }}</div>
+              </div>
+              <span class="badge {{ claseEstado(p.estado) }}">{{ textoEstado(p.estado) }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-bold">{{ p.monto_total | currency }}</span>
+              <a [routerLink]="['/cuenta/pedidos', p.id]" class="btn btn-sm btn-outline-light">Ver detalle</a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
